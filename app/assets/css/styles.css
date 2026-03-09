@@ -1,0 +1,494 @@
+*{
+
+	padding:0px;
+	margin:0px;
+	
+ }
+
+*,*:after, *:before{
+	margin: 0;
+	padding: 0;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+body{
+	background:#ffffff;
+	overflow:hidden; 
+	width: 100%;
+	height: 50%;
+	background-repeat: no-repeat;
+	background-position: top;
+	background-size: cover;
+	animation: animacion_body 1s ease-in;
+}
+
+@keyframes animacion_body {
+  0% {
+    opacity:0;
+  }
+  100% {
+    opacity:1;
+  }
+}
+
+a{
+	text-decoration: none;
+	outline:none;
+}
+a :hover{
+	background-color:rgba(255,255,255,0.8) !important;
+	outline:none;
+}
+
+@font-face {
+  font-family: MuseoSans500;
+   src:url("../fonts/MuseoSans500.otf");
+}
+
+@font-face {
+  font-family: MuseoSans700;
+   src:url("../fonts/MuseoSans700.otf");
+}
+
+@font-face {
+  font-family: Roboto-Regular;
+   src:url("../fonts/Roboto-Regular.ttf");
+}
+
+
+#contenedor_carga{
+	background-color: rgba(255,255,255,1.00);
+	height: 100%;
+	width:100%;
+	position: fixed;
+	top: 0;
+	transition: all 1s ease;
+	z-index: 1000;
+}
+
+#carga{
+	border: 15px solid #ccc;
+	border-top-color: #11A2DC;
+	border-top-style: groove;
+	height: 100px;
+	width: 100px;
+	border-radius: 100%;
+	
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	margin: auto;
+	animation: girar 1.5s linear infinite;
+}
+
+@keyframes girar{
+	from { transform: rotate(0deg);}
+	to {transform: rotate(360deg);}
+}
+
+/* Estilos Index */
+
+.Boton_index{
+	position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 5;
+    -ms-touch-action: none;
+    -webkit-touch-action: none;
+    touch-action: none;
+    -webkit-touch-callout: none;
+	text-decoration: none;
+}
+
+.section_index{
+	position: fixed;
+    bottom: 0vh;
+    width: 100vw;
+    height: 100vh;
+    padding: 5% 10%;
+}
+
+.titulo_index {
+	position: absolute;
+    bottom: 0;
+	width: 80%;
+    height: 8vh;
+    padding: 0%;
+}
+
+.titulo_index h2 {
+	font-family: MuseoSans700;
+	color: #FFFFFF;
+	font-size: 2.3vh;
+    text-align: center;
+    text-shadow: 3px 3px 3px rgb(0 0 0 / 80%);
+}
+
+.Mano{
+    position: absolute;
+    z-index: 4;
+    left: 0%;
+    bottom: 10%;
+    width: 65%;
+}
+
+
+/*Animacion Mano*/
+
+.Mano{
+  animation: Animacion_Mano linear 3s;
+  animation-iteration-count: infinite;
+  transform-origin: 50% 50%;
+  -webkit-animation: Animacion_Mano linear 3s;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-transform-origin: 50% 50%;
+  -moz-animation: Animacion_Mano linear 3s;
+  -moz-animation-iteration-count: infinite;
+  -moz-transform-origin: 50% 50%;
+  -o-animation: Animacion_Mano linear 3s;
+  -o-animation-iteration-count: infinite;
+  -o-transform-origin: 50% 50%;
+  -ms-animation: Animacion_Mano linear 3s;
+  -ms-animation-iteration-count: infinite;
+  -ms-transform-origin: 50% 50%;
+}
+
+@keyframes Animacion_Mano{
+  0% {
+    transform:  scaleX(1.00) scaleY(1.00) ;
+  }
+  50% {
+    transform:  scaleX(1.20) scaleY(1.20) ;
+  }
+  100% {
+    transform:  scaleX(1.00) scaleY(1.00) ;
+  }
+}
+
+@-moz-keyframes Animacion_Mano{
+  0% {
+    -moz-transform:  scaleX(1.00) scaleY(1.00) ;
+  }
+  50% {
+    -moz-transform:  scaleX(1.20) scaleY(1.20) ;
+  }
+  100% {
+    -moz-transform:  scaleX(1.00) scaleY(1.00) ;
+  }
+}
+
+@-webkit-keyframes Animacion_Mano {
+  0% {
+    -webkit-transform:  scaleX(1.00) scaleY(1.00) ;
+  }
+  50% {
+    -webkit-transform:  scaleX(1.20) scaleY(1.20) ;
+  }
+  100% {
+    -webkit-transform:  scaleX(1.00) scaleY(1.00) ;
+  }
+}
+
+@-o-keyframes Animacion_Mano {
+  0% {
+    -o-transform:  scaleX(1.00) scaleY(1.00) ;
+  }
+  50% {
+    -o-transform:  scaleX(1.20) scaleY(1.20) ;
+  }
+  100% {
+    -o-transform:  scaleX(1.00) scaleY(1.00) ;
+  }
+}
+
+@-ms-keyframes Animacion_Mano {
+  0% {
+    -ms-transform:  scaleX(1.00) scaleY(1.00) ;
+  }
+  50% {
+    -ms-transform:  scaleX(1.20) scaleY(1.20) ;
+  }
+  100% {
+    -ms-transform:  scaleX(1.00) scaleY(1.00) ;
+  }
+}
+
+/*Fin Animacion Mano*/
+
+.contenedor-medios{
+	width: 100vw;
+	height: 100vh;
+}
+
+#lp-preview-video{
+	width: 100vw;
+	height: 100vh;
+}
+
+#lp-preview-image{
+	width: 100vw;
+	height: 100vh;
+}
+
+/* Seccion Frame */
+
+.section_contenido{
+	display: inline-block;
+    width: 100%;
+    height: 100vh;
+}
+
+.container {
+	position: relative;
+	width: 100%;
+	height: 100vh;
+	overflow: hidden;
+}
+
+.responsive-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Estilos Registro */
+
+.header_contenido{
+	float: left;
+	width: 100%;
+	height: 14vh;
+	padding: 8% 16%;
+}
+
+.header_contenido h1{
+	font-family: MuseoSans700;
+	color: #205198;
+	font-size: 3vh;
+    text-align: center;
+	text-transform: uppercase;
+}
+
+.section_contenido_registro{
+	float: left;
+    width: 100%;
+    height: 74vh;
+	padding: 5% 15%;
+}
+
+.section_contenido_registro h3{
+	font-family: MuseoSans500;
+	color: #205198;
+	font-size: 2vh;
+    text-align: center;
+	margin: 5%
+}
+.section_contenido_registro p{
+	font-family: MuseoSans500;
+	color: #272727;
+	font-size: 1.6vh;
+    text-align: center;
+	margin: 5%
+}
+
+.formulario{
+	width: fit-content;
+}
+
+.formulario select{
+	font-family: MuseoSans500;
+	color: #272727;
+	font-size: 1.4vh;
+	border-radius: 15px;
+	padding: 20px;
+    width: 48%;
+    margin: 1%;
+    float: left;
+}
+
+.formulario input {
+	font-family: MuseoSans500;
+	color: #272727;
+    font-size: 1.4vh;
+    border-radius: 15px;
+    padding: 20px;
+    width: 48%;
+    margin: 1%;
+    float: left;
+}
+
+.datos{
+	width: 100%;
+    float: left;
+    margin: 8% 0%;
+}
+.datos .aceptar_politicas{
+	width: 24%;
+	margin: 1%;
+	float:left;
+	font-size: 1.4vh;
+}
+
+.datos .politicas{
+	width: 72%;
+	margin: 1%;
+	float: left;
+	text-align: left;
+	font-size: 1.2vh;
+}
+
+.input_politicas{
+	width: 30px !important;
+    height: 30px !important;
+    float: left !important;
+    margin: 15px !important;
+	padding: 0 !important;
+}
+
+.boton_atras{
+	font-family: MuseoSans500 !important;
+	color: #FFFFFF !important;
+	font-size: 1.4vh !important;
+	width: 25% !important;
+    height: 8vw !important;
+    margin: 5% !important;
+    float: right !important;
+    background-color: #205198 !important;
+	border-radius: 20px !important;
+	padding: 4% 8%;
+}
+
+.boton_continuar{
+	font-family: MuseoSans500 !important;
+	color: #FFFFFF !important;
+	font-size: 1.4vh !important;
+	width: 25% !important;
+    height: 8vw !important;
+    margin: 5% !important;
+    float: right !important;
+    background-color: #205198 !important;
+	border-radius: 20px !important;
+}
+
+.footer_contenido{
+	float: left;
+    width: 100%;
+    height: 12vh;
+}
+
+.footer_contenido img{
+    width: 50%;
+	margin: 6% 25%;
+}
+
+/* Estilos Login */
+
+.login{
+	width: 50%;
+    margin: 10% 25% 10% 26%;
+    float: left;
+}
+
+.login input{
+	font-family: MuseoSans500;
+	color: #272727;
+    font-size: 1.4vh;
+    border-radius: 15px;
+    padding: 20px;
+    width: 100%;
+    margin: 1%;
+    float: left;
+}
+
+.regresar{
+	font-family: MuseoSans500;
+    color: #FFFFFF;
+    font-size: 1.2vh;
+    text-align: center;
+    padding: 3%;
+    background-color: #205198;
+    border-radius: 20px;
+    position: absolute;
+    top: 60%;
+    left: 2%;
+    z-index: 2;
+}
+
+/* Estilos login módulo */
+
+.header_login{
+	float: left;
+    margin: 20% 5%;
+	width: 90%;
+}
+
+.logo_login{
+	width: 80%;
+    margin: 5% auto;
+    display: block!important;
+}
+
+.section_login{
+	float: left;
+    margin: 5%;
+	width: 90%;
+	height: 45vh;
+}
+
+.section_login h2 {
+	font-family: MuseoSans500;
+    color: #205198;
+    font-size: 1.5vh;
+    text-align: center;
+}
+
+.seleccion_modulo{
+	margin: 10%;
+}
+
+.seleccion_modulo select {
+	box-shadow: 3px 3px 3px 0px #000000;
+    width: 45vw;
+    height: 5vh;
+    border-radius: 20px;
+    margin: 10% auto;
+    display: block;
+    font-family: MuseoSans500;
+    text-align-last: center;
+    font-size: 1.5em;
+    color: #454545;
+}
+
+.seleccion_modulo button {
+	background: linear-gradient(to bottom, #11a3dc 5%, #008ec6 100%);
+    background-color: #11a3dc;
+    border-radius: 20px ;
+    border: 5px solid #0071bc;
+    display: block;
+    cursor: pointer;
+    color: #ffffff;
+    text-align: center ;
+    font-size: 1.8vh ;
+    text-decoration: none;
+    text-shadow: 2px 2px 3px rgb(0 0 0 / 80%);
+    padding: 2% 5%;
+    margin: 2% auto;
+    float: none ;
+}
+
+.modulo{
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	font-size: 16px;
+}
