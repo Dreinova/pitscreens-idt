@@ -1,14 +1,38 @@
 <?php
-error_reporting(0);
+/**
+ * frame.php — Módulo App (Pantalla)
+ *
+ * Pantalla de contenido interactivo del kiosco. Muestra la URL configurada
+ * en la tabla `frame` dentro de un iframe, permitiendo que el visitante
+ * acceda a sitios web, formularios o servicios en línea del IDT.
+ *
+ * La URL externa se carga a través de proxy.php para evadir restricciones
+ * de X-Frame-Options que impiden la incrustación directa de sitios externos.
+ *
+ * Requisitos:
+ *   - Sesión de módulo activa ($_SESSION['log-modulo']).
+ *   - URL configurada en la tabla `frame` de la base de datos.
+ *
+ * Comportamiento de inactividad:
+ *   - El script Inactividad2.js detecta cuando el usuario lleva un tiempo
+ *     sin interactuar y redirige automáticamente a index.php.
+ *
+ * Navegación:
+ *   - Botón "Regresar" lleva de vuelta a index.php (pantalla principal).
+ */
+
+error_reporting(0); // Suprimir errores en pantallas públicas
 date_default_timezone_set('America/Bogota');
 
+// Sesión de larga duración para pantallas 24/7
 session_cache_expire("31536000");
 session_set_cookie_params("31536000");
 session_start([
     'cookie_lifetime' => 31536000,
-    'gc_maxlifetime' => 31536000,
+    'gc_maxlifetime'  => 31536000,
 ]);
 
+// Verificar sesión de módulo; si no existe, redirigir a selección de kiosco
 if(!isset($_SESSION['log-modulo'])){
     header('Location: log_index.php');
     exit();
@@ -18,10 +42,10 @@ $modulo = $_SESSION['modulo'];
 
 include '../admin/assets/php/Conexion_DB.php';
 
-/* Consulta URL */
+/* Obtener la URL configurada para el iframe desde la tabla `frame` */
 $consulta_URL = mysqli_query($conexion, "SELECT * FROM `frame` LIMIT 1");
-$row_URL = mysqli_fetch_array($consulta_URL);
-$URL = $row_URL["URL"];
+$row_URL      = mysqli_fetch_array($consulta_URL);
+$URL          = $row_URL["URL"];
 ?>
 
 <!doctype html>

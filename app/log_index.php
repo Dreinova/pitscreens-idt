@@ -1,31 +1,53 @@
 <?php
+/**
+ * log_index.php — Módulo App (Pantalla)
+ *
+ * Pantalla de selección de perfil de módulo (kiosco).
+ * Es el punto de entrada para la aplicación de pantalla interactiva.
+ * El operador selecciona cuál kiosco/módulo es esta pantalla antes de
+ * ponerla en funcionamiento público.
+ *
+ * Flujo:
+ *   1. Si ya hay sesión de módulo activa, redirige a index.php (pantalla principal).
+ *   2. Muestra un listado desplegable con todos los módulos registrados en la BD.
+ *   3. Al seleccionar y enviar, guarda el módulo en sesión y redirige a index.php.
+ *
+ * Variables de sesión que establece:
+ *   $_SESSION['log-modulo'] → true (módulo seleccionado)
+ *   $_SESSION['modulo']     → Nombre del módulo/kiosco activo
+ *
+ * La sesión tiene duración de 1 año (31536000 segundos) para que la pantalla
+ * no necesite re-seleccionar el módulo entre reinicios del navegador.
+ */
+
+// Configurar sesión de larga duración (1 año) para pantallas que operan 24/7
 session_cache_expire("31536000");
 session_set_cookie_params("31536000");
 session_start([
     'cookie_lifetime' => 31536000,
-    'gc_maxlifetime' => 31536000,
+    'gc_maxlifetime'  => 31536000,
 ]);
 
-/*  verificacion login  */
+/* Si ya hay sesión de módulo o de admin, ir directamente al inicio */
 if(isset($_SESSION['log-modulo'])){
 	header('Location: index.php');
 }
-
 if(isset($_SESSION['logeado'])){
 	header('Location: index.php');
 }
 
 include '../admin/assets/php/Conexion_DB.php';
 
+// Obtener todos los módulos registrados para mostrar en el selector
 $consulta_modulo = mysqli_query($conexion, "SELECT * FROM modulos");
 
 if(isset($_POST['entrar'])){
+	// Guardar el módulo seleccionado en sesión e ir a la pantalla principal
 	$Modulo = $_POST['modulo'];
 	$_SESSION['log-modulo'] = true;
-	$_SESSION['modulo'] = $Modulo;
+	$_SESSION['modulo']     = $Modulo;
 	header('Location: index.php');
 }
-
 ?>
 
 <!DOCTYPE html>

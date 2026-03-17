@@ -1,86 +1,105 @@
 <?php
+/**
+ * contenido.php — Módulo Administrador
+ *
+ * Gestión del contenido multimedia del sistema (imágenes y videos).
+ * Permite a los administradores y colaboradores:
+ *   - Subir nuevos archivos (PNG, JPEG, MP4) al servidor.
+ *   - Asignar cada archivo a una lista de reproducción.
+ *   - Definir el orden de reproducción y el estado (Activo/Inactivo).
+ *   - Ver la galería completa de imágenes y videos.
+ *   - Editar o eliminar elementos existentes.
+ *
+ * Formatos aceptados: .png, .jpg/.jpeg, .mp4 (máximo 80 MB).
+ * Los archivos se guardan físicamente en: admin/assets/galeria/
+ * Los registros se almacenan en la tabla `contenido` de la BD.
+ *
+ * Campos de la tabla `contenido`:
+ *   URL              — Nombre del archivo en disco
+ *   Tipo             — 'image' o 'video'
+ *   Estado           — 1 (Activo) / 0 (Inactivo)
+ *   Orden            — Número de posición en la reproducción
+ *   Lista-Reproduccion — FK a la tabla `lista-reproduccion`
+ *   Fecha_Modificación — Fecha y hora de la última subida/edición
+ *   Usuario          — Nombre del usuario que realizó la acción
+ */
+
 date_default_timezone_set('America/Bogota');
 include 'assets/php/Conexion_DB.php';
 
+// Sesión administrativa con 2 horas de duración
 session_start([
     'cookie_lifetime' => 7200,
-    'gc_maxlifetime' => 7200,
+    'gc_maxlifetime'  => 7200,
 ]);
 
-/*  verificacion login  */
+/* Proteger la página: redirigir al login si no hay sesión activa */
 if(!isset($_SESSION['logeado'])):
 	header('Location: index.php');
 endif;
 
-/* datos de usuario */
-
-$id = $_SESSION['id_Correo'];
-$sql = "SELECT usuarios.ID, usuarios.Nombre, usuarios.Correo, usuarios.Foto_Usuario, funciones_usuario.Funcion FROM usuarios INNER JOIN funciones_usuario ON usuarios.Funcion = funciones_usuario.ID WHERE usuarios.ID = '$id' ";
-$resultado = mysqli_query($conexion, $sql);
-$datos = mysqli_fetch_array($resultado);
-
-$name_user = $datos['Nombre'];
-$mail_user = $datos['Correo'];
-$foto_user = $datos['Foto_Usuario'];
+/* --- Obtener datos del usuario autenticado --- */
+$id     = $_SESSION['id_Correo'];
+$sql    = "SELECT usuarios.ID, usuarios.Nombre, usuarios.Correo, usuarios.Foto_Usuario,
+                  funciones_usuario.Funcion
+           FROM usuarios
+           INNER JOIN funciones_usuario ON usuarios.Funcion = funciones_usuario.ID
+           WHERE usuarios.ID = '$id'";
+$resultado    = mysqli_query($conexion, $sql);
+$datos        = mysqli_fetch_array($resultado);
+$name_user    = $datos['Nombre'];
+$mail_user    = $datos['Correo'];
+$foto_user    = $datos['Foto_Usuario'];
 $funcion_user = $datos['Funcion'];
 
-/* consulta de Programación */
+/* --- Obtener todas las listas de reproducción para el selector del formulario --- */
+$consulta_programacion = mysqli_query($conexion, "SELECT * FROM `lista-reproduccion`");
 
-$consulta_programacion = mysqli_query($conexion,"SELECT * FROM `lista-reproduccion` ");
-
-/* Galeria de Contenido */
-
+/* --- Procesamiento del formulario de subida de contenido --- */
 if(isset($_POST['enviar'])){
-	
-	$foto = $_FILES["foto"]["name"];
+
+	// Datos del archivo subido
+	$foto      = $_FILES["foto"]["name"];
 	$foto_type = $_FILES["foto"]["type"];
-	$ruta = $_FILES["foto"]["tmp_name"];
-	$destino = "assets/galeria/".$foto;
-	
-	$Estado = $_REQUEST["Estado"];
+	$ruta      = $_FILES["foto"]["tmp_name"];  // Ruta temporal en el servidor
+	$destino   = "assets/galeria/" . $foto;     // Ruta final donde se guardará
+
+	// Datos del formulario
+	$Estado            = $_REQUEST["Estado"];
 	$Lista_reporduccion = $_REQUEST["Lista"];
-	$Orden = $_REQUEST["orden"];
-	$fecha = $hoy = date("Y-m-d H:i:s");
-	
-	copy($ruta,$destino);
-	
+	$Orden             = $_REQUEST["orden"];
+	$fecha             = date("Y-m-d H:i:s");
+
+	// Copiar el archivo desde la ubicación temporal a la galería
+	copy($ruta, $destino);
+
+	// Insertar registro según el tipo de archivo detectado por MIME type
 	if ($foto_type == 'image/png') {
-    	$sub_img = mysqli_query($conexion,"INSERT INTO contenido (URL, Tipo, Estado, Orden, `Lista-Reproduccion`, Fecha_Modificación, Usuario) VALUES ('$foto', 'image', '$Estado', '$Orden', '$Lista_reporduccion', '$fecha', '$name_user')");
-		
-		if ($sub_img){
-			header("Location: contenido.php");
-		}
-
-		else{
-			$errores = "<p>No se ha subido correctamente la imagen png.</p>";
-		}
-	
+		$sub_img = mysqli_query($conexion,
+            "INSERT INTO contenido (URL, Tipo, Estado, Orden, `Lista-Reproduccion`, Fecha_Modificación, Usuario)
+             VALUES ('$foto', 'image', '$Estado', '$Orden', '$Lista_reporduccion', '$fecha', '$name_user')"
+        );
+		if ($sub_img){ header("Location: contenido.php"); }
+		else{ $errores = "<p>No se ha subido correctamente la imagen PNG.</p>"; }
 	}
-	
+
 	if ($foto_type == 'image/jpeg') {
-    	$sub_img = mysqli_query($conexion,"INSERT INTO contenido (URL, Tipo, Estado, Orden, `Lista-Reproduccion`, Fecha_Modificación, Usuario) VALUES ('$foto', 'image', '$Estado', '$Orden', '$Lista_reporduccion', '$fecha', '$name_user')");
-		if ($sub_img){
-			header("Location: contenido.php");
-		}
-
-		else{
-			$errores = "<p>No se ha subido correctamente la imagen jpeg.</p>";
-		}
-	
+		$sub_img = mysqli_query($conexion,
+            "INSERT INTO contenido (URL, Tipo, Estado, Orden, `Lista-Reproduccion`, Fecha_Modificación, Usuario)
+             VALUES ('$foto', 'image', '$Estado', '$Orden', '$Lista_reporduccion', '$fecha', '$name_user')"
+        );
+		if ($sub_img){ header("Location: contenido.php"); }
+		else{ $errores = "<p>No se ha subido correctamente la imagen JPEG.</p>"; }
 	}
-	
-	if ($foto_type == 'video/mp4') {
-    	$sub_video = mysqli_query($conexion,"INSERT INTO contenido (URL, Tipo, Estado, Orden, `Lista-Reproduccion`, Fecha_Modificación, Usuario) VALUES ('$foto', 'video', '$Estado', '$Orden', '$Lista_reporduccion', '$fecha', '$name_user')");
-		if ($sub_video){
-			header("Location: contenido.php");
-		}
 
-		else{
-			$errores = "<p>No se ha subido correctamente la imagen jpeg.</p>";
-		}
-	
-	}	
-	
+	if ($foto_type == 'video/mp4') {
+		$sub_video = mysqli_query($conexion,
+            "INSERT INTO contenido (URL, Tipo, Estado, Orden, `Lista-Reproduccion`, Fecha_Modificación, Usuario)
+             VALUES ('$foto', 'video', '$Estado', '$Orden', '$Lista_reporduccion', '$fecha', '$name_user')"
+        );
+		if ($sub_video){ header("Location: contenido.php"); }
+		else{ $errores = "<p>No se ha subido correctamente el video MP4.</p>"; }
+	}
 }
 
 ?>

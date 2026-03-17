@@ -1,55 +1,83 @@
 <?php
+/**
+ * programacion.php — Módulo Administrador
+ *
+ * Gestión de listas de reproducción / programaciones del sistema.
+ * Permite crear programaciones con nombre y fecha/hora de inicio.
+ * El sistema activa automáticamente la lista cuya Fecha-Inicio sea la
+ * más reciente menor o igual a la hora actual (lógica en index.php y activacion.php).
+ *
+ * Funcionalidades:
+ *   - Crear nueva programación con nombre y fecha/hora de activación.
+ *   - Listar todas las programaciones con su estado actual.
+ *   - Editar programaciones existentes (editar_programacion.php).
+ *   - Eliminar programaciones (eliminar_programacion.php).
+ *
+ * Tabla `lista-reproduccion`:
+ *   Nombre            — Nombre descriptivo de la programación
+ *   Fecha-Inicio      — Fecha y hora en que debe activarse automáticamente
+ *   Estado            — 1 (Activo) / 0 (Inactivo) — gestionado por el sistema
+ *   Fecha-Modificacion — Fecha de la última modificación manual
+ *   Usuario           — Administrador que creó o editó la programación
+ *
+ * Nota: El campo "Estado" lo gestiona automáticamente el sistema en index.php
+ * y activacion.php; no debe editarse manualmente en condiciones normales.
+ */
+
 date_default_timezone_set('America/Bogota');
 include 'assets/php/Conexion_DB.php';
 
+// Sesión administrativa con 2 horas de duración
 session_start([
     'cookie_lifetime' => 7200,
-    'gc_maxlifetime' => 7200,
+    'gc_maxlifetime'  => 7200,
 ]);
 
-/*  verificacion login  */
+/* Proteger la página: redirigir al login si no hay sesión activa */
 if(!isset($_SESSION['logeado'])):
 	header('Location: index.php');
 endif;
 
-/* datos de usuario */
-
-$id = $_SESSION['id_Correo'];
-$sql = "SELECT usuarios.ID, usuarios.Nombre, usuarios.Correo, usuarios.Foto_Usuario, funciones_usuario.Funcion FROM usuarios INNER JOIN funciones_usuario ON usuarios.Funcion = funciones_usuario.ID WHERE usuarios.ID = '$id' ";
-$resultado = mysqli_query($conexion, $sql);
-$datos = mysqli_fetch_array($resultado);
-
-$name_user = $datos['Nombre'];
-$mail_user = $datos['Correo'];
-$foto_user = $datos['Foto_Usuario'];
+/* --- Obtener datos del usuario autenticado --- */
+$id     = $_SESSION['id_Correo'];
+$sql    = "SELECT usuarios.ID, usuarios.Nombre, usuarios.Correo, usuarios.Foto_Usuario,
+                  funciones_usuario.Funcion
+           FROM usuarios
+           INNER JOIN funciones_usuario ON usuarios.Funcion = funciones_usuario.ID
+           WHERE usuarios.ID = '$id'";
+$resultado    = mysqli_query($conexion, $sql);
+$datos        = mysqli_fetch_array($resultado);
+$name_user    = $datos['Nombre'];
+$mail_user    = $datos['Correo'];
+$foto_user    = $datos['Foto_Usuario'];
 $funcion_user = $datos['Funcion'];
 
-/* consulta lista de Programación */
+/* --- Consultar todas las programaciones para mostrar en la tabla --- */
+$consulta_programacion = mysqli_query($conexion, "SELECT * FROM `lista-reproduccion`");
 
-$consulta_programacion = mysqli_query($conexion,"SELECT * FROM `lista-reproduccion`");
-
-/* Guardar nueva programación */
-
+/* --- Procesamiento del formulario para crear nueva programación --- */
 if(isset($_POST['enviar'])){
-	
-	$Nombre = $_REQUEST["Nombre"];
-	
-	$fecha_inicio = $_REQUEST["Fecha"];
-	$hora_inicio = $_REQUEST["Hora"];
-	$fecha_inicio = $fecha_inicio.' '.$hora_inicio ;
-	
-	$Estado = $_REQUEST["Estado"];
-	$hoy = date("Y-m-d H:i:s");
-	
-	$sql_programacion = "INSERT INTO `lista-reproduccion` (Nombre, `Fecha-Inicio`, Estado, `Fecha-Modificacion`, Usuario) VALUES ('$Nombre', '$fecha_inicio', '$Estado', '$hoy', '$name_user')";
 
-	
-    $nueva_programacion = mysqli_query($conexion,$sql_programacion);
-		
+	$Nombre = $_REQUEST["Nombre"];
+
+	// Combinar la fecha y hora del campo datetime-local del formulario
+	$fecha_inicio = $_REQUEST["Fecha"];
+	$hora_inicio  = $_REQUEST["Hora"];
+	$fecha_inicio = $fecha_inicio . ' ' . $hora_inicio;
+
+	$Estado = $_REQUEST["Estado"];
+	$hoy    = date("Y-m-d H:i:s"); // Fecha actual como marca de modificación
+
+	// Insertar la nueva programación en la base de datos
+	$sql_programacion = "INSERT INTO `lista-reproduccion`
+                         (Nombre, `Fecha-Inicio`, Estado, `Fecha-Modificacion`, Usuario)
+                         VALUES ('$Nombre', '$fecha_inicio', '$Estado', '$hoy', '$name_user')";
+
+	$nueva_programacion = mysqli_query($conexion, $sql_programacion);
+
 	if ($nueva_programacion){
 		header("Location: programacion.php");
 	}
-
 	else{
 		$errores = "<p>No se ha guardado correctamente la programación.</p>";
 	}

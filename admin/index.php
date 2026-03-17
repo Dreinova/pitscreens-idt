@@ -1,45 +1,71 @@
 <?php
+/**
+ * index.php — Módulo Administrador
+ *
+ * Página de inicio de sesión del panel administrativo.
+ * Permite autenticar a los usuarios del sistema usando nombre de usuario
+ * o correo electrónico junto con su contraseña (almacenada como hash MD5).
+ *
+ * Flujo de autenticación:
+ *   1. Si el usuario ya tiene sesión activa, redirige directamente a inicio.php.
+ *   2. Al enviar el formulario, valida que los campos no estén vacíos.
+ *   3. Verifica que el usuario/correo exista en la tabla `usuarios`.
+ *   4. Compara la contraseña ingresada (en MD5) con la almacenada en la BD.
+ *   5. Si es correcta, inicia la sesión y redirige al dashboard.
+ *
+ * Variables de sesión que se establecen al autenticarse:
+ *   $_SESSION['logeado']   → true (indicador de sesión activa)
+ *   $_SESSION['id_Correo'] → ID del usuario autenticado
+ *   $_SESSION['Funcion']   → Rol del usuario (Administrador / Colaborador)
+ */
 
 include 'assets/php/Conexion_DB.php';
 
 session_start();
 
-/*  verificacion login  */
+/* Redirige al dashboard si ya hay una sesión activa */
 if(isset($_SESSION['logeado'])){
 	header('Location: inicio.php');
 }
 
 if(isset($_POST['btn-entrar'])){
 	$errores = array();
-	$Usuario = mysqli_escape_string($conexion, $_POST['Usuario']);
+
+	// Sanear entradas para prevenir inyección básica en MySQLi
+	$Usuario   = mysqli_escape_string($conexion, $_POST['Usuario']);
 	$contrasena = mysqli_escape_string($conexion, $_POST['contrasena']);
 
+	// Guardar credenciales en cookies por 1 hora si el usuario marcó "Mantener sesión"
 	if(isset($_POST['recuerda-contrasena'])){
-		setcookie('Correo', $Usuario, time()+3600);
+		setcookie('Correo',     $Usuario,        time()+3600);
 		setcookie('contrasena', md5($contrasena), time()+3600);
 	}
 
+	// Validar que los campos no estén vacíos
 	if(empty($Usuario) or empty($contrasena)){
 		$errores[] = "<li> El campo Correo o Contraseña debe completarse.</li>";
 	}
 	else{
+		// Primer paso: verificar si el usuario o correo existe en la BD
 		$sql = "SELECT Nombre OR Correo FROM usuarios WHERE (Nombre='$Usuario' OR Correo='$Usuario') LIMIT 1";
-		$resultado = mysqli_query($conexion, $sql);		
+		$resultado = mysqli_query($conexion, $sql);
 
 		if(mysqli_num_rows($resultado) > 0){
-			$contrasena = md5($contrasena); 
+			// Segundo paso: verificar que la contraseña (MD5) coincida
+			$contrasena = md5($contrasena);
 			$sql = "SELECT * FROM usuarios WHERE (Nombre='$Usuario' OR Correo='$Usuario') AND password = '$contrasena' LIMIT 1";
 
 			$resultado = mysqli_query($conexion, $sql);
 
 			if(mysqli_num_rows($resultado) == 1){
+				// Autenticación exitosa: establecer variables de sesión y redirigir
 				$datos = mysqli_fetch_array($resultado);
 				mysqli_close($conexion);
-				$_SESSION['logeado'] = true;
+				$_SESSION['logeado']   = true;
 				$_SESSION['id_Correo'] = $datos['ID'];
-				$_SESSION['Funcion'] = $datos['Funcion'];
+				$_SESSION['Funcion']   = $datos['Funcion'];
 				header('Location: inicio.php');
-				
+
 			}
 			else{
 				$errores[] = "<li> Correo y contraseña no coinciden</li>";
@@ -49,7 +75,7 @@ if(isset($_POST['btn-entrar'])){
 			$errores[] = "<li> Usuario o Correo inexistente </li>";
 		}
 
-		}
+	}
 
 }
 

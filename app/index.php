@@ -1,14 +1,44 @@
 <?php
-error_reporting(0);
+/**
+ * index.php — Módulo App (Pantalla)
+ *
+ * Pantalla principal del kiosco interactivo. Muestra la galería de medios
+ * (imágenes y videos) de la programación activa en modo slideshow automático.
+ * También contiene el mensaje "Toque la pantalla para comenzar" que invita
+ * al visitante a acceder al contenido del punto de información turística.
+ *
+ * Requiere sesión de módulo activa ($_SESSION['log-modulo']).
+ * Si no hay sesión, redirige a log_index.php para seleccionar el kiosco.
+ *
+ * Lógica de programación:
+ *   1. Busca la programación más reciente cuya Fecha-Inicio <= ahora.
+ *   2. La activa (Estado = '1') y desactiva todas las demás.
+ *   3. Consulta todos los elementos de contenido (imágenes/videos) asignados
+ *      a esa lista de reproducción.
+ *   4. Los exporta como array JavaScript (loopAssets) para el slideshow.
+ *
+ * Slideshow JavaScript:
+ *   - Imágenes: se muestran durante 10 segundos (setTimeout 10000ms).
+ *   - Videos: se reproducen completos; al terminar (evento 'ended') avanza al siguiente.
+ *   - Si no hay contenido configurado, reproduce un video por defecto (IDT.mp4).
+ *
+ * Actualización en tiempo real:
+ *   - El div #tiempo se actualiza cada 1 segundo cargando tiempo.php vía AJAX
+ *     para detectar cambios de programación sin recargar la página.
+ */
+
+error_reporting(0); // Ocultar errores en producción (pantallas públicas)
 date_default_timezone_set('America/Bogota');
 
+// Sesión de larga duración para pantallas 24/7
 session_cache_expire("31536000");
 session_set_cookie_params("31536000");
 session_start([
     'cookie_lifetime' => 31536000,
-    'gc_maxlifetime' => 31536000,
+    'gc_maxlifetime'  => 31536000,
 ]);
 
+// Verificar que el módulo haya sido seleccionado previamente
 if(!isset($_SESSION['log-modulo'])){
 	header('Location: log_index.php');
 }
@@ -17,28 +47,46 @@ $modulo = $_SESSION['modulo'];
 
 include '../admin/assets/php/Conexion_DB.php';
 
-$ahora = date("Y-m-d H:i:s");
-$NuevaFecha = strtotime ( '+1 minute' , strtotime ($ahora) ) ;
-$NuevaFecha = date ( 'Y-m-d H:i:s' , $NuevaFecha); 
+$ahora      = date("Y-m-d H:i:s");
+// Calcular un minuto adelante (reservado para lógica futura de anticipación)
+$NuevaFecha = strtotime('+1 minute', strtotime($ahora));
+$NuevaFecha = date('Y-m-d H:i:s', $NuevaFecha);
 
-/* Consulta programaciones y verificacion de fechas*/
-$sql_programaciones = mysqli_query($conexion, "SELECT * FROM `lista-reproduccion` WHERE `Fecha-Inicio` <=NOW() ORDER BY `Fecha-Inicio` DESC LIMIT 1");
+/* --- Verificación y activación de programación según fecha actual --- */
+// Buscar la programación más reciente que ya debería estar activa
+$sql_programaciones = mysqli_query($conexion,
+    "SELECT * FROM `lista-reproduccion`
+     WHERE `Fecha-Inicio` <= NOW()
+     ORDER BY `Fecha-Inicio` DESC LIMIT 1"
+);
 $rowProgramaciones = mysqli_fetch_array($sql_programaciones);
 $ID_programaciones = $rowProgramaciones['ID'];
-$fecha_inicio = $rowProgramaciones['Fecha-Inicio'];
+$fecha_inicio      = $rowProgramaciones['Fecha-Inicio'];
 
 if($ahora > $fecha_inicio){
-	$activar = mysqli_query($conexion,"UPDATE `lista-reproduccion` SET `Estado` = '1' WHERE `lista-reproduccion`.`ID` = $ID_programaciones");
-	$desactivar = mysqli_query($conexion, "UPDATE `lista-reproduccion` SET `Estado` = '0' WHERE NOT `lista-reproduccion`.`ID` = $ID_programaciones");
+	// Activar la programación más reciente y desactivar el resto
+	$activar   = mysqli_query($conexion,
+        "UPDATE `lista-reproduccion` SET `Estado` = '1'
+         WHERE `lista-reproduccion`.`ID` = $ID_programaciones"
+    );
+	$desactivar = mysqli_query($conexion,
+        "UPDATE `lista-reproduccion` SET `Estado` = '0'
+         WHERE NOT `lista-reproduccion`.`ID` = $ID_programaciones"
+    );
 }
 
-/* Consulta la programacion activa */
-$consulta_programacion = mysqli_query($conexion, "SELECT * FROM `lista-reproduccion` WHERE Estado = '1' LIMIT 1");
-$row_programacion = mysqli_fetch_array($consulta_programacion);
-$ID_programacion = $row_programacion["ID"];
+/* --- Obtener la programación activa y su contenido multimedia --- */
+$consulta_programacion = mysqli_query($conexion,
+    "SELECT * FROM `lista-reproduccion` WHERE Estado = '1' LIMIT 1"
+);
+$row_programacion  = mysqli_fetch_array($consulta_programacion);
+$ID_programacion   = $row_programacion["ID"];
 $name_programacion = $row_programacion["Nombre"];
 
-$consultaContenido = mysqli_query($conexion,"SELECT * FROM `contenido` WHERE `lista-reproduccion`= $ID_programacion");
+// Obtener todos los elementos de contenido de la lista activa
+$consultaContenido = mysqli_query($conexion,
+    "SELECT * FROM `contenido` WHERE `lista-reproduccion` = $ID_programacion"
+);
 $numero_filas = mysqli_num_rows($consultaContenido);
 
 ?>
