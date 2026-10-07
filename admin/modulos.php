@@ -92,7 +92,7 @@ mysqli_close($conexion);
      <div class="row pt-2 pb-2">
         <div class="col-sm-9">
 			<h4 class="page-title">Pantallas</h4>
-			<p class="text-muted mb-0">Cada pantalla administra su propio contenido y protector desde "Editar". Usa <a href="contenido.php">Contenido</a> y <a href="programacion.php">Programación</a> solo para contenido general o programado con fecha futura.</p>
+			<p class="text-muted mb-0">Cada pantalla administra su propio contenido y protector desde "Editar". Usa <a href="contenido.php">Contenido</a> para el contenido general compartido entre pantallas.</p>
 	   </div>
 	   <div class="col-sm-3 text-right">
 		   <a href="nuevo_modulo.php" class="btn btn-primary"><i class="fa fa-plus"></i> Nueva pantalla</a>

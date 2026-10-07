@@ -337,7 +337,7 @@ if (!$config_pantalla) {
             <div class="card-body">
 
 				<?php if (!$ID_lista_pantalla): ?>
-				<p class="text-muted">Esta pantalla todavía no tiene contenido propio — está usando el contenido general (o el programado desde <a href="programacion.php">Programación</a>). Sube un archivo para asignarle contenido exclusivo.</p>
+				<p class="text-muted">Esta pantalla todavía no tiene contenido propio — está usando el contenido general. Sube un archivo para asignarle contenido exclusivo.</p>
 				<?php endif; ?>
 
 				<form action="<?php echo $_SERVER['PHP_SELF'] . '?id=' . $edit_id; ?>" method="POST" enctype="multipart/form-data">

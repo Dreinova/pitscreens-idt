@@ -110,35 +110,11 @@ $funcion_user = $datos['Funcion'];
 		<div class="col-12 col-lg-2">
 	    <div class="card">
 			<div class="card-body text-center">
-				<div class="dash-icon-badge"><i class="zmdi zmdi-edit"></i></div>
-				<h4 class="card-title">Programación</h4>
-				<h6>Edite que imágenes o video se mostrara en la aplicación</h6>
-				<hr>
-                <a href="programacion.php" class="btn btn-primary btn-sm"><i class="zmdi zmdi-edit"></i> Edición</a>
-			</div>
-		</div>
-	   </div>
-	   
-		<div class="col-12 col-lg-2">
-	    <div class="card">
-			<div class="card-body text-center">
 				<div class="dash-icon-badge"><i class="zmdi zmdi-image"></i></div>
 				<h4 class="card-title">Contenido</h4>
 				<h6>Suba, edite y elimine las imágenes que usara en la aplicación</h6>
 				<hr>
                 <a href="contenido.php" class="btn btn-primary btn-sm"><i class="zmdi zmdi-image"></i> Contenido</a>
-			</div>
-		</div>
-	   </div>
-		
-		<div class="col-12 col-lg-2">
-	    <div class="card">
-			<div class="card-body text-center">
-				<div class="dash-icon-badge"><i class="fa fa-crop"></i></div>
-				<h4 class="card-title">Frame <span class="badge badge-warning" title="No tiene ningún punto de entrada desde el kiosco actualmente">No conectado</span></h4>
-				<h6>Edite la URL del iframe — actualmente sin punto de entrada desde el kiosco</h6>
-				<hr>
-                <a href="frame.php" class="btn btn-primary btn-sm"><i class="fa fa-crop"></i> Frame</a>
 			</div>
 		</div>
 	   </div>
@@ -149,10 +125,10 @@ $funcion_user = $datos['Funcion'];
 	    <div class="card">
 			<div class="card-body text-center">
 				<div class="dash-icon-badge"><i class="zmdi zmdi-chart"></i></div>
-				<h4 class="card-title">Estadísticas</h4>
-				<h6>Visualice el alcance de uso de cada módulo que se ha usado.</h6>
+				<h4 class="card-title">Reportes</h4>
+				<h6>Visualice los inicios de reproducción registrados por pantalla.</h6>
 				<hr>
-                <a href="reporte_tabla.php" class="btn btn-primary btn-sm"><i class="zmdi zmdi-chart"></i> Estadísticas</a>
+                <a href="reporte_pantallas.php" class="btn btn-primary btn-sm"><i class="zmdi zmdi-chart"></i> Reportes</a>
 			</div>
 		</div>
 	   </div>

@@ -65,20 +65,8 @@ function idt_avatar($foto, $correo, $class = '', $variant = 'circle') {
       </li>
 		  
 	  <li>
-        <a href="programacion.php" class="waves-effect">
-		  <i class="fa fa-pencil-square-o "></i><span>Programación</span>
-        </a>
-      </li>
-		  
-	  <li>
         <a href="contenido.php" class="waves-effect">
           <i class="fa fa-picture-o"></i><span>Contenido</span>
-        </a>
-      </li>
-		  
-	  <li>
-        <a href="frame.php" class="waves-effect">
-          <i class="fa fa-crop"></i><span>Frame <span class="badge badge-warning" title="No tiene ningún punto de entrada desde el kiosco actualmente">No conectado</span></span>
         </a>
       </li>
 
@@ -91,29 +79,9 @@ function idt_avatar($foto, $correo, $class = '', $variant = 'circle') {
 		if($funcion_user == 'Administrador'){
 			echo '
 	<li>
-        <a href="javaScript:void();" class="waves-effect">
+        <a href="reporte_pantallas.php" class="waves-effect">
           <i class="zmdi zmdi-chart"></i> <span>Reportes</span>
-          <i class="fa fa-angle-left pull-right"></i>
         </a>
-        <ul class="sidebar-submenu">
-          <li>
-			  <a href="reporte_tabla.php"><i class="zmdi zmdi-long-arrow-right"></i> Reporte General</a>
-		  </li>
-		  <li>
-			  <a href="reporte_visitantes.php"><i class="zmdi zmdi-long-arrow-right"></i> Reporte de Visitantes</a>
-		  </li>
-		  <li>
-			  <a href="reporte_pantallas.php"><i class="zmdi zmdi-long-arrow-right"></i> Reporte de Pantallas</a>
-		  </li>
-          <li>
-            <a href="javaScript:void();"><i class="zmdi zmdi-long-arrow-right"></i> Estadisticas de Uso <i class="fa fa-angle-left pull-right"></i></a>
-            <ul class="sidebar-submenu">
-			  <li><a href="reporte_charts_genero.php"><i class="zmdi zmdi-long-arrow-right"></i> Por Genero</a></li>
-			  <li><a href="reporte_charts_tiempo.php"><i class="zmdi zmdi-long-arrow-right"></i> Por Tiempo</a></li>
-			  <li><a href="reporte_charts_edad.php"><i class="zmdi zmdi-long-arrow-right"></i> Por Edad</a></li>
-            </ul>
-          </li>
-        </ul>
       </li>
 			';
 		}
