@@ -26,7 +26,12 @@ $funcion_user = $datos['Funcion'];
 
 /* consulta de Programación */
 
-$ID_Programacion = $_GET["id"];
+// El formulario de edición envía el POST a $_SERVER['PHP_SELF'], que no
+// conserva el "?id=..." de la URL — por eso al guardar llega en el campo
+// oculto "ID" (mayúscula) en vez de en la query string. Se contemplan los
+// dos casos, y se castea a int (el ID siempre es numérico) para evitar un
+// error de sintaxis SQL si llegara vacío.
+$ID_Programacion = isset($_GET["id"]) ? (int) $_GET["id"] : (int) ($_POST["ID"] ?? 0);
 
 $consulta_programacion = mysqli_query($conexion,"SELECT * FROM `lista-reproduccion` WHERE ID = $ID_Programacion ");
 $datos_programacion = mysqli_fetch_array($consulta_programacion);
@@ -45,10 +50,12 @@ if(isset($_POST['enviar'])){
 	$ID_post = $_REQUEST["ID"];
 	$Nombre = $_REQUEST["Nombre"];
 	$Modulo = trim($_REQUEST["Modulo"]); // vacío = general (todos los módulos)
-	$fecha = $_REQUEST["Fecha"];
-	$hora = $_REQUEST["Hora"];
-	$fecha = $fecha.' '.$hora ;
-	$Estado = $_REQUEST["Estado"];
+	// El campo datetime-local ya trae fecha y hora juntas ("2020-06-01T12:00");
+	// solo hace falta cambiar la "T" por un espacio para el formato DATETIME de MySQL.
+	$fecha = str_replace('T', ' ', $_REQUEST["Fecha"]);
+	// No hay campo Estado en el formulario: se conserva el que ya tenía (lo
+	// gestiona el sistema automáticamente, no se pide al editar).
+	$Estado = $Estado_programacion;
 	$hoy = date("Y-m-d H:i:s");
 
 	$sql_modulo = $Modulo === '' ? "NULL" : "'$Modulo'";
@@ -158,7 +165,7 @@ if(isset($_POST['enviar'])){
 								<div class="form-group row">
 									<label class="col-lg-12 col-form-label form-control-label">Fecha de programación</label>
 									<div class="col-lg-10">
-										<input type="datetime-local" name="Fecha" class="form-control" value="2020-06-01T12:00">
+										<input type="datetime-local" name="Fecha" class="form-control" value="<?php echo str_replace(' ', 'T', substr($fecha_inicio, 0, 16)); ?>">
 									</div>
 								</div>
 							</div>

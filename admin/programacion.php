@@ -64,12 +64,13 @@ if(isset($_POST['enviar'])){
 	$Nombre = $_REQUEST["Nombre"];
 	$Modulo = trim($_REQUEST["Modulo"]); // vacío = general (todos los módulos)
 
-	// Combinar la fecha y hora del campo datetime-local del formulario
-	$fecha_inicio = $_REQUEST["Fecha"];
-	$hora_inicio  = $_REQUEST["Hora"];
-	$fecha_inicio = $fecha_inicio . ' ' . $hora_inicio;
+	// El campo datetime-local ya trae fecha y hora juntas ("2020-06-01T12:00");
+	// solo hace falta cambiar la "T" por un espacio para el formato DATETIME de MySQL.
+	$fecha_inicio = str_replace('T', ' ', $_REQUEST["Fecha"]);
 
-	$Estado = $_REQUEST["Estado"];
+	// Nace inactiva: el sistema la activa sola cuando corresponda según la
+	// fecha (ver app/index.php) — no se pide en el formulario.
+	$Estado = 0;
 	$hoy    = date("Y-m-d H:i:s"); // Fecha actual como marca de modificación
 
 	// Insertar la nueva programación en la base de datos
