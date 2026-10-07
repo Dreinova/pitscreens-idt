@@ -355,7 +355,7 @@ reco (estadísticas de uso) ─────────────────�
    CREATE DATABASE idt_app CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    ```
 
-3. **Importar el esquema** de tablas (solicitar el archivo `.sql` al equipo de Electronika).
+3. **Importar el esquema** de tablas desde `idt_app.sql`, incluido en la raíz del repositorio.
 
 4. **Configurar la conexión** a la base de datos en:
    - `admin/assets/php/Conexion_DB.php`
@@ -425,4 +425,4 @@ Los roles se asignan al crear o editar usuarios desde `admin/usuarios.php`.
 
 ---
 
-*Desarrollado por Electronika © 2020 — Todos los derechos reservados.*
+*Instituto Distrital de Turismo — Alcaldía Mayor de Bogotá D.C.*

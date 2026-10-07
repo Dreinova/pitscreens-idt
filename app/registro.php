@@ -49,7 +49,7 @@ function lanzadera(){
 <body oncontextmenu="return false" onselectstart="return false" ondragstart="return false" style="overflow:hidden" onkeypress="parar()" onclick="parar()" >
 
 	<header class="kiosk-topbar">
-		<img class="kiosk-topbar-logo" src="assets/img/Logos_Alcaldia.png" alt="Alcaldía de Bogotá">
+		<span class="kiosk-logo-plate"><img class="kiosk-topbar-logo" src="assets/img/logo-bogota.svg" alt="Bogotá"></span>
 	</header>
 
 	<main class="kiosk-main">
@@ -101,7 +101,7 @@ function lanzadera(){
 	</main>
 
 	<footer class="kiosk-footer">
-		<img class="kiosk-footer-logo" src="assets/img/Logos_Alcaldia.png" alt="Alcaldía de Bogotá">
+		<span class="kiosk-logo-plate"><img class="kiosk-footer-logo" src="assets/img/logo-bogota.svg" alt="Bogotá"></span>
 	</footer>
 
 	<div id="contenedor_carga">

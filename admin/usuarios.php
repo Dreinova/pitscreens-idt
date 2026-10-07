@@ -85,7 +85,7 @@ mysqli_close($conexion);
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
   <meta name="description" content=""/>
   <meta name="author" content=""/>
-  <title>Usuarios Registrados - IDT App by Electronika</title>
+  <title>Usuarios Registrados - IDT App</title>
   <!--favicon-->
   <link rel="icon" href="assets/images/Favicon.png" type="image/x-icon">
   <!-- simplebar CSS-->
@@ -248,7 +248,7 @@ mysqli_close($conexion);
 	<footer class="footer">
       <div class="container">
         <div class="text-center">
-           Desarrollado por Electronika © 2020 | Todos los derechos reservados.
+           Instituto Distrital de Turismo — Alcaldía Mayor de Bogotá D.C.
         </div>
       </div>
     </footer>

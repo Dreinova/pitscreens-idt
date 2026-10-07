@@ -85,7 +85,7 @@ function lanzadera(){
 
 	<div class="kiosk-select-wrap">
 		<header class="kiosk-topbar">
-			<img class="kiosk-topbar-logo" src="assets/img/Logos_Alcaldia.png" alt="Alcaldía de Bogotá">
+			<span class="kiosk-logo-plate"><img class="kiosk-topbar-logo" src="assets/img/logo-bogota.svg" alt="Bogotá"></span>
 		</header>
 
 		<main class="kiosk-main">

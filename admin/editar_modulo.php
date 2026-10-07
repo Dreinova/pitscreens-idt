@@ -68,7 +68,7 @@ mysqli_close($conexion);
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
   <meta name="description" content=""/>
   <meta name="author" content=""/>
-  <title>Edición de Usuario - SuperSubsidio App by Electronika</title>
+  <title>Edición de Usuario - IDT App</title>
   <!--favicon-->
   <link rel="icon" href="assets/images/Favicon.png" type="image/x-icon">
   <!-- simplebar CSS-->
@@ -191,7 +191,7 @@ mysqli_close($conexion);
 	<footer class="footer">
       <div class="container">
         <div class="text-center">
-           © Electronika - 2019
+           © Instituto Distrital de Turismo
         </div>
       </div>
     </footer>

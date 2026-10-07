@@ -88,7 +88,7 @@ if(isset($_POST['btn-entrar'])){
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
   <meta name="description" content=""/>
   <meta name="author" content=""/>
-  <title>Inicio de seción - IDT App by Electronika</title>
+  <title>Inicio de seción - IDT App</title>
   <!--favicon-->
   <link rel="icon" href="assets/images/Favicon.png" type="image/x-icon">
   <!-- Bootstrap core CSS-->
@@ -122,7 +122,9 @@ if(isset($_POST['btn-entrar'])){
 		<div class="card-body">
 		 <div class="card-content p-2">
 		 	<div class="text-center">
-		 		<img src="assets/images/Logo_Alcaldia.png" class="login-logo" alt="Instituto Distrital de Turismo - Bogotá">
+		 		<span class="brand-plate">
+		 			<img src="assets/images/logo-bogota.svg" class="login-logo" alt="Bogotá">
+		 		</span>
 		 	</div>
 		  <div class="card-title text-uppercase text-center py-3">Inicio de Sesión</div>
 			 <?php 

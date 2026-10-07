@@ -3,8 +3,9 @@
 	
 	<div class="brand-logo">
       <a href="index.php" class="brand-logo-link">
-       <img src="assets/images/Favicon.png" class="brand-logo-icon" alt="">
-       <span class="brand-logo-text">IDT App</span>
+       <span class="brand-plate">
+         <img src="assets/images/logo-bogota.svg" class="brand-logo-svg" alt="Bogotá">
+       </span>
      </a>
    </div>
 	   
