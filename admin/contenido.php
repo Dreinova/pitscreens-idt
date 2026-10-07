@@ -55,50 +55,64 @@ $funcion_user = $datos['Funcion'];
 /* --- Obtener todas las listas de reproducción para el selector del formulario --- */
 $consulta_programacion = mysqli_query($conexion, "SELECT * FROM `lista-reproduccion`");
 
+/* --- Archivos ya subidos (sin repetir), para reutilizarlos sin duplicar
+       el archivo físico en disco --- */
+$consulta_existentes = mysqli_query($conexion, "SELECT DISTINCT URL, Tipo FROM contenido ORDER BY URL ASC");
+
 /* --- Procesamiento del formulario de subida de contenido --- */
 if(isset($_POST['enviar'])){
 
-	// Datos del archivo subido
-	$foto      = $_FILES["foto"]["name"];
-	$foto_type = $_FILES["foto"]["type"];
-	$ruta      = $_FILES["foto"]["tmp_name"];  // Ruta temporal en el servidor
-	$destino   = "assets/galeria/" . $foto;     // Ruta final donde se guardará
-
 	// Datos del formulario
-	$Estado            = $_REQUEST["Estado"];
+	$Estado             = $_REQUEST["Estado"];
 	$Lista_reporduccion = $_REQUEST["Lista"];
-	$Orden             = $_REQUEST["orden"];
-	$fecha             = date("Y-m-d H:i:s");
+	$Orden              = $_REQUEST["orden"];
+	$fecha              = date("Y-m-d H:i:s");
+	$origen             = $_REQUEST["origen"] ?? 'nuevo';
 
-	// Copiar el archivo desde la ubicación temporal a la galería
-	copy($ruta, $destino);
+	if ($origen === 'existente' && !empty($_REQUEST['archivo_existente'])) {
 
-	// Insertar registro según el tipo de archivo detectado por MIME type
-	if ($foto_type == 'image/png') {
-		$sub_img = mysqli_query($conexion,
+		// Reutilizar un archivo que ya está en assets/galeria/: mismo
+		// URL/Tipo, nueva fila en `contenido` — sin volver a subir ni
+		// duplicar el archivo físico.
+		list($tipo_existente, $foto) = explode('|', $_REQUEST['archivo_existente'], 2);
+		$foto           = mysqli_real_escape_string($conexion, $foto);
+		$tipo_existente = mysqli_real_escape_string($conexion, $tipo_existente);
+
+		$sub = mysqli_query($conexion,
             "INSERT INTO contenido (URL, Tipo, Estado, Orden, `Lista-Reproduccion`, Fecha_Modificación, Usuario)
-             VALUES ('$foto', 'image', '$Estado', '$Orden', '$Lista_reporduccion', '$fecha', '$name_user')"
+             VALUES ('$foto', '$tipo_existente', '$Estado', '$Orden', '$Lista_reporduccion', '$fecha', '$name_user')"
         );
-		if ($sub_img){ header("Location: contenido.php"); }
-		else{ $errores = "<p>No se ha subido correctamente la imagen PNG.</p>"; }
+		if ($sub){ header("Location: contenido.php"); exit(); }
+		else{ $errores = "<p>No se ha podido asignar el archivo seleccionado.</p>"; }
 	}
+	else {
 
-	if ($foto_type == 'image/jpeg') {
-		$sub_img = mysqli_query($conexion,
-            "INSERT INTO contenido (URL, Tipo, Estado, Orden, `Lista-Reproduccion`, Fecha_Modificación, Usuario)
-             VALUES ('$foto', 'image', '$Estado', '$Orden', '$Lista_reporduccion', '$fecha', '$name_user')"
-        );
-		if ($sub_img){ header("Location: contenido.php"); }
-		else{ $errores = "<p>No se ha subido correctamente la imagen JPEG.</p>"; }
-	}
+		// Datos del archivo subido
+		$foto      = $_FILES["foto"]["name"];
+		$foto_type = $_FILES["foto"]["type"];
+		$ruta      = $_FILES["foto"]["tmp_name"];  // Ruta temporal en el servidor
+		$destino   = "assets/galeria/" . $foto;     // Ruta final donde se guardará
 
-	if ($foto_type == 'video/mp4') {
-		$sub_video = mysqli_query($conexion,
-            "INSERT INTO contenido (URL, Tipo, Estado, Orden, `Lista-Reproduccion`, Fecha_Modificación, Usuario)
-             VALUES ('$foto', 'video', '$Estado', '$Orden', '$Lista_reporduccion', '$fecha', '$name_user')"
-        );
-		if ($sub_video){ header("Location: contenido.php"); }
-		else{ $errores = "<p>No se ha subido correctamente el video MP4.</p>"; }
+		// Copiar el archivo desde la ubicación temporal a la galería
+		copy($ruta, $destino);
+
+		// Insertar registro según el tipo de archivo detectado por MIME type
+		if ($foto_type == 'image/png' || $foto_type == 'image/jpeg') {
+			$sub_img = mysqli_query($conexion,
+                "INSERT INTO contenido (URL, Tipo, Estado, Orden, `Lista-Reproduccion`, Fecha_Modificación, Usuario)
+                 VALUES ('$foto', 'image', '$Estado', '$Orden', '$Lista_reporduccion', '$fecha', '$name_user')"
+            );
+			if ($sub_img){ header("Location: contenido.php"); exit(); }
+			else{ $errores = "<p>No se ha subido correctamente la imagen.</p>"; }
+		}
+		elseif ($foto_type == 'video/mp4') {
+			$sub_video = mysqli_query($conexion,
+                "INSERT INTO contenido (URL, Tipo, Estado, Orden, `Lista-Reproduccion`, Fecha_Modificación, Usuario)
+                 VALUES ('$foto', 'video', '$Estado', '$Orden', '$Lista_reporduccion', '$fecha', '$name_user')"
+            );
+			if ($sub_video){ header("Location: contenido.php"); exit(); }
+			else{ $errores = "<p>No se ha subido correctamente el video MP4.</p>"; }
+		}
 	}
 }
 
@@ -183,12 +197,43 @@ if(isset($_POST['enviar'])){
 		<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST" enctype="multipart/form-data">
 			
 			<div class="row">
-				
-				<div class="col-12 col-lg-6 col-xl-6">
-					<div class="form-group row">	
+
+				<div class="col-12">
+					<div class="form-group row">
+						<label class="col-lg-12 col-form-label form-control-label">Origen del archivo</label>
+						<div class="col-lg-10">
+							<div class="icheck-material-white d-inline-block mr-4">
+								<input type="radio" id="origen_nuevo" name="origen" value="nuevo" checked onchange="toggleOrigenArchivo();">
+								<label for="origen_nuevo">Subir archivo nuevo</label>
+							</div>
+							<div class="icheck-material-white d-inline-block">
+								<input type="radio" id="origen_existente" name="origen" value="existente" onchange="toggleOrigenArchivo();">
+								<label for="origen_existente">Usar uno ya subido</label>
+							</div>
+							<br><small class="text-muted">Si el video o imagen ya está en la galería, reutilízalo en vez de subirlo otra vez — evita archivos duplicados.</small>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-12 col-lg-6 col-xl-6" id="bloque_origen_nuevo">
+					<div class="form-group row">
 						<label for="input-2" class="col-lg-12 col-form-label form-control-label" >Seleccione una imagen o video:</label>
 						<div class="col-sm-10">
-							<input type="file" class="form-control" name="foto" id="foto" accept=".png, .jpg, .jpeg, .mp4" onchange="validarFile(this);" required>
+							<input type="file" class="form-control" name="foto" id="foto" accept=".png, .jpg, .jpeg, .mp4" onchange="validarFile(this);">
+						</div>
+					</div>
+				</div>
+
+				<div class="col-12 col-lg-6 col-xl-6" id="bloque_origen_existente" style="display:none;">
+					<div class="form-group row">
+						<label class="col-lg-12 col-form-label form-control-label">Archivo ya subido:</label>
+						<div class="col-lg-10">
+							<select class="form-control" name="archivo_existente" id="archivo_existente">
+								<option value="" selected disabled hidden>Seleccione un archivo</option>
+								<?php foreach ($consulta_existentes as $ex){ ?>
+								<option value="<?php echo $ex['Tipo']; ?>|<?php echo htmlspecialchars($ex['URL']); ?>"><?php echo htmlspecialchars($ex['URL']); ?> (<?php echo $ex['Tipo'] == 'video' ? 'video' : 'imagen'; ?>)</option>
+								<?php } ?>
+							</select>
 						</div>
 					</div>
 				</div>
@@ -235,18 +280,18 @@ if(isset($_POST['enviar'])){
 				
 			</div>
 			
-			<?php 
+			<?php
 				if(!empty($errores)){
 					echo $errores;
 				}
 			?>
 			<div class="form-footer">
-				<input type="submit" class="btn btn-success" name="enviar" value="Guardar">
+				<input type="submit" class="btn btn-success" name="enviar" value="Guardar" onclick="return validarOrigenArchivo();">
 			</div>
-			
-			
-            
-        </form>  
+
+
+
+        </form>
 				
             </div>
           </div>
@@ -383,6 +428,30 @@ if(isset($_POST['enviar'])){
 	
   <!-- Scripts de Galeria -->
 <script>
+function toggleOrigenArchivo(){
+	var esNuevo = document.getElementById('origen_nuevo').checked;
+	document.getElementById('bloque_origen_nuevo').style.display = esNuevo ? '' : 'none';
+	document.getElementById('bloque_origen_existente').style.display = esNuevo ? 'none' : '';
+	if (esNuevo) {
+		document.getElementById('archivo_existente').value = '';
+	} else {
+		document.getElementById('foto').value = '';
+	}
+}
+
+function validarOrigenArchivo(){
+	var esNuevo = document.getElementById('origen_nuevo').checked;
+	if (esNuevo && !document.getElementById('foto').value) {
+		alert('Selecciona una imagen o video para subir.');
+		return false;
+	}
+	if (!esNuevo && !document.getElementById('archivo_existente').value) {
+		alert('Selecciona un archivo ya subido de la lista.');
+		return false;
+	}
+	return true;
+}
+
 function validarFile(all)
 {
     //EXTENSIONES Y TAMANO PERMITIDO.
