@@ -318,11 +318,14 @@ img {
 	object-fit: cover;
 }
 
-.kiosk-idle {
+/* Overlay del protector de pantalla: visible mientras se reproduce el
+   protector. Si hay contenido real configurado, JS lo deja clickeable
+   (display:flex) con el ícono de toque; si no hay nada a lo que avanzar,
+   JS lo oculta (display:none) y el protector simplemente se repite solo. */
+.kiosk-signage-overlay {
 	position: fixed;
 	inset: 0;
 	z-index: 5;
-	display: flex;
 	align-items: flex-end;
 	justify-content: center;
 	-ms-touch-action: none;

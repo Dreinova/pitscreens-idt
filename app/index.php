@@ -155,7 +155,10 @@ function lanzadera(){
 
 	<div class="item contenedor-medios"></div>
 
-	<a class="kiosk-idle" href="login.php" aria-label="Toca la pantalla para comenzar">
+	<!-- Protector de pantalla: se muestra mientras nadie ha tocado. Solo es
+	     clickeable (y solo tiene sentido tocarla) si hay contenido real
+	     configurado para pasar a reproducir — si no, se oculta por JS. -->
+	<div class="kiosk-signage-overlay" id="overlayProtector" onclick="iniciarContenidoReal();">
 		<div class="kiosk-idle-content">
 			<div class="kiosk-touch-badge">
 				<img class="kiosk-touch-icon" src="assets/img/Mano_Touch.svg" alt="">
@@ -163,9 +166,9 @@ function lanzadera(){
 			<h2 class="kiosk-idle-title">Toca la pantalla para comenzar</h2>
 			<span class="kiosk-module-pill"><?php echo $modulo; ?></span>
 		</div>
-	</a>
+	</div>
 
-	<a href="assets/php/logout.php" class="kiosk-settings-btn" aria-label="Cambiar módulo" title="Cambiar módulo" onclick="return confirm('¿Cambiar el módulo asignado a este punto?');">&#9881;</a>
+	<a href="assets/php/logout.php" class="kiosk-settings-btn" aria-label="Cambiar módulo" title="Cambiar módulo" onclick="event.stopPropagation(); return confirm('¿Cambiar el módulo asignado a este punto?');">&#9881;</a>
 
 	<div id="contenedor_carga">
 		<div id="carga"></div>
@@ -191,75 +194,86 @@ $(document).ready(function() {
 </script>
 <!-- Scripts Lista de Reproduccion -->
 <script>
-// Listado de medios en la programación
-var loopAssets = [
+// Contenido real configurado para este módulo/general (puede quedar vacío
+// si todavía no hay nada programado).
+var contenidoAssets = [
 	<?php
-	if ($numero_filas >= 1){
 	while($row = mysqli_fetch_array($consultaContenido)){
 		$URLContenido = $row['URL'];
 		$tipoContenido = $row['Tipo'];
-		$contentType = 'video/mp4';
-		
-		if($tipoContenido  == 'video'){
-			$tipoContenido = 'video';
+
+		if($tipoContenido == 'video'){
 			$contentType = 'video/mp4';
 		}
-		if($tipoContenido  == 'image'){
+		else {
 			$tipoContenido = 'image';
 			$contentType = 'image/jpg';
 		}
-
 	?>
-	
 	{ contentUrl: "../admin/assets/galeria/<?php echo $URLContenido; ?>", contentType: "<?php echo $contentType; ?>", mediaType: "<?php echo $tipoContenido; ?>" },
 	<?php
 	}
-		}
-	else{
-		$protector_contentType = $protector_tipo === 'image' ? 'image/jpg' : 'video/mp4';
-		echo '{ contentUrl: "../admin/assets/galeria/' . $protector_url . '", contentType: "' . $protector_contentType . '", mediaType: "' . $protector_tipo . '"},';
-	}
 	?>
-
-	/*{ contentUrl: "../admin/assets/galeria/V1.mp4", contentType: "video/mp4", mediaType: "video"},
-	{ contentUrl: "../admin/assets/galeria/I1.jpg", contentType: "image/jpg", mediaType:"image" },*/
-
 ];
-var previewContainer = $(".contenedor-medios");
-var curIndex = 1;
 
-appendMediaElement(loopAssets[0]);
-
-// Funcion para cambiar de medio
-function changeMedia() {
-  if(curIndex >= loopAssets.length) {
-    curIndex = 0;
-  }
-  appendMediaElement(loopAssets[curIndex]);
-  curIndex++;
+// Protector de pantalla configurado en el admin (admin/configuracion.php) —
+// siempre hay uno, es lo que se ve antes de tocar la pantalla.
+var protectorAsset = {
+	contentUrl: "../admin/assets/galeria/<?php echo $protector_url; ?>",
+	contentType: "<?php echo $protector_tipo === 'image' ? 'image/jpg' : 'video/mp4'; ?>",
+	mediaType: "<?php echo $protector_tipo; ?>"
 };
 
-// Funcion para agregar los tipos de formato Imagen o Video
-function appendMediaElement(asset) {
+var previewContainer = $(".contenedor-medios");
+var overlayProtector  = document.getElementById('overlayProtector');
+var curIndex = 0;
+
+// Funcion para agregar los tipos de formato Imagen o Video. "onEnded" decide
+// qué pasa cuando termina ese elemento (seguir en el protector, o avanzar al
+// siguiente del contenido real).
+function appendMediaElement(asset, onEnded) {
   var mediaEl = "";
-	//Si es Imagen
 	if(asset.mediaType == "image") {
 		mediaEl =  '<img id="lp-preview-image" src="' + asset.contentUrl + '">';
 		previewContainer.html(mediaEl);
-		// Ajuste de Tiempo para imagenes 
-		setTimeout("changeMedia()", 10000);
+		setTimeout(onEnded, 10000); // Tiempo fijo para imágenes
   }
-	// Si es Video
 	else if(asset.mediaType == "video") {
 		mediaEl = "<video id='lp-preview-video' autoplay muted>";
     	mediaEl += "<source src='"+ asset.contentUrl + "' type='" + asset.contentType + "'>";
     	mediaEl += "</video>";
     	previewContainer.html(mediaEl);
-    	// video: el tiempo de los videos es automatico
-		document.getElementById("lp-preview-video").addEventListener("ended", function(e) {
-		changeMedia();
-    });
+		document.getElementById("lp-preview-video").addEventListener("ended", onEnded);
   }
+}
+
+// El protector se repite solo, indefinidamente, hasta que se toque la
+// pantalla (y solo si hay contenido real al que pasar).
+function mostrarProtector() {
+	appendMediaElement(protectorAsset, mostrarProtector);
+}
+
+// Al tocar el protector: se oculta el ícono/mensaje de "toca para comenzar"
+// y arranca el bucle del contenido real configurado.
+function iniciarContenidoReal() {
+	if (contenidoAssets.length === 0) { return; }
+	overlayProtector.style.display = 'none';
+	curIndex = 0;
+	reproducirContenidoReal();
+}
+
+function reproducirContenidoReal() {
+	if (curIndex >= contenidoAssets.length) {
+		curIndex = 0;
+	}
+	appendMediaElement(contenidoAssets[curIndex], reproducirContenidoReal);
+	curIndex++;
+}
+
+// Arranque: el protector siempre se muestra primero. El ícono de toque solo
+// tiene sentido (y solo se muestra) si hay contenido real al que avanzar.
+overlayProtector.style.display = contenidoAssets.length > 0 ? 'flex' : 'none';
+mostrarProtector();
 }
 </script>
 	
