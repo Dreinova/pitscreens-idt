@@ -4,34 +4,50 @@
  *
  * Elimina un archivo multimedia (imagen o video) del sistema.
  * Recibe el ID del contenido por GET, borra el archivo físico del
- * directorio /galeria/ y luego elimina el registro de la base de datos.
+ * directorio /galeria/ (si existe) y luego elimina el registro de la
+ * base de datos.
  *
  * Parámetros GET:
  *   id (int) — ID del registro en la tabla `contenido`
- *
- * Nota: No verifica autenticación de sesión; depende de que el enlace
- * sea generado únicamente desde páginas protegidas (contenido.php).
  */
 
+session_start([
+    'cookie_lifetime' => 7200,
+    'gc_maxlifetime'  => 7200,
+]);
 include('Conexion_DB.php');
+
+if(!isset($_SESSION['logeado'])){
+	header('Location: ../../index.php');
+	exit();
+}
+
+// HTTP_REFERER no siempre llega (navegadores/extensiones que lo bloquean,
+// acceso directo) — sin respaldo, el header() de abajo fallaba.
+$redirect = $_SERVER['HTTP_REFERER'] ?? '../../contenido.php';
 
 if (isset($_GET['id'])){
 
-	$id = $_GET['id'];
+	$id = (int) $_GET['id'];
 
 	// Obtener el nombre del archivo (campo URL) para poder borrarlo del disco
 	$consulta  = mysqli_query($conexion, "SELECT URL FROM contenido WHERE ID = $id");
 	$datos_img = mysqli_fetch_array($consulta);
-	$img_url   = $datos_img['URL'];
 
-	// Eliminar el archivo físico del servidor
-	unlink("../galeria/" . $img_url);
+	// Si ya no existe el registro (doble clic, ID inválido), no hay nada
+	// que borrar — evita el warning de array nulo y el unlink() a ciegas.
+	if ($datos_img && !empty($datos_img['URL'])){
+		$ruta_archivo = "../galeria/" . $datos_img['URL'];
+		if (file_exists($ruta_archivo)){
+			unlink($ruta_archivo);
+		}
+	}
 
 	// Eliminar el registro de la base de datos
-	$eliminar = "DELETE FROM contenido WHERE ID = $id";
-	mysqli_query($conexion, $eliminar);
+	mysqli_query($conexion, "DELETE FROM contenido WHERE ID = $id");
 }
 
 // Regresar a la página desde donde se llamó (contenido.php)
-header("Location: " . $_SERVER['HTTP_REFERER']);
+header("Location: " . $redirect);
+exit();
 ?>

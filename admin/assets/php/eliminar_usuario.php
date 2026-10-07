@@ -3,42 +3,62 @@
  * eliminar_usuario.php — Módulo Administrador
  *
  * Elimina un usuario del sistema administrativo.
- * Primero borra la foto de perfil del disco (si existe), luego elimina
- * el registro correspondiente de la tabla `usuarios`.
+ * Primero borra la foto de perfil del disco (si tiene una), luego
+ * elimina el registro correspondiente de la tabla `usuarios`.
  *
  * Parámetros GET:
  *   id (int) — ID del usuario a eliminar
  *
- * Nota: Solo debe ser accedido por administradores; la restricción
- * se aplica visualmente desde usuarios.php (solo Administrador ve el botón).
+ * Solo accesible para Administradores (antes solo se ocultaba el botón
+ * en usuarios.php, pero la URL en sí no verificaba nada).
  */
 
+session_start([
+    'cookie_lifetime' => 7200,
+    'gc_maxlifetime'  => 7200,
+]);
 include 'Conexion_DB.php';
 
-$id = $_GET['id'];
-
-// Obtener la ruta de la foto de perfil del usuario para eliminarla del disco
-$consulta_img = mysqli_query($conexion, "SELECT Foto_Usuario FROM usuarios WHERE ID=$id");
-$res     = mysqli_fetch_array($consulta_img);
-$img_del = $res["Foto_Usuario"];
-
-// Ajustar la ruta relativa para unlink (desde el directorio assets/php/)
-$img_name = substr($img_del, 6); // Quitar los primeros 6 caracteres de la ruta almacenada
-$img_name = '..' . $img_name;    // Navegar al directorio padre (assets/)
-
-// Eliminar la imagen física del servidor
-unlink($img_name);
-
-// Eliminar el registro del usuario de la base de datos
-$consulta = "DELETE FROM usuarios WHERE ID = '$id'";
-$query    = mysqli_query($conexion, $consulta);
-
-// Regresar a la página de gestión de usuarios
-if($query){
-	header("Location: " . $_SERVER['HTTP_REFERER']);
+if(!isset($_SESSION['logeado'])){
+	header('Location: ../../index.php');
+	exit();
 }
-else{
-	echo "No se ha eliminado el usuario";
-	header("Location: " . $_SERVER['HTTP_REFERER']);
+
+$id_sesion = $_SESSION['id_Correo'];
+$datos_sesion = mysqli_fetch_array(mysqli_query($conexion,
+    "SELECT funciones_usuario.Funcion FROM usuarios
+     INNER JOIN funciones_usuario ON usuarios.Funcion = funciones_usuario.ID
+     WHERE usuarios.ID = '$id_sesion'"
+));
+if(!$datos_sesion || $datos_sesion['Funcion'] != 'Administrador'){
+	header('Location: ../../inicio.php');
+	exit();
 }
+
+$redirect = $_SERVER['HTTP_REFERER'] ?? '../../usuarios.php';
+
+if(isset($_GET['id'])){
+	$id = (int) $_GET['id'];
+
+	// Obtener la ruta de la foto de perfil del usuario para eliminarla del disco
+	$consulta_img = mysqli_query($conexion, "SELECT Foto_Usuario FROM usuarios WHERE ID=$id");
+	$res     = mysqli_fetch_array($consulta_img);
+	$img_del = $res ? $res["Foto_Usuario"] : '';
+
+	// Muchos usuarios no tienen foto (se les muestra la inicial del correo
+	// en su lugar) — sin esta validación, substr('', 6) dejaba $img_name
+	// en '..' y el unlink() apuntaba al directorio padre en vez de un archivo.
+	if(!empty($img_del)){
+		$img_name = '..' . substr($img_del, 6); // Navegar al directorio padre (assets/)
+		if(file_exists($img_name)){
+			unlink($img_name);
+		}
+	}
+
+	// Eliminar el registro del usuario de la base de datos
+	mysqli_query($conexion, "DELETE FROM usuarios WHERE ID = $id");
+}
+
+header("Location: " . $redirect);
+exit();
 ?>
