@@ -6115,6 +6115,12 @@ code { color: #C0392B; }
 	max-width: 300px;
 	margin: 0 auto 8px;
 }
+
+.landing-logo {
+	width: 100%;
+	max-width: 380px;
+	margin: 0 auto;
+}
 .card-authentication1 .card-title {
 	color: var(--color-primary) !important;
 	font-weight: 700;
