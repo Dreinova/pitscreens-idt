@@ -274,7 +274,6 @@ function reproducirContenidoReal() {
 // tiene sentido (y solo se muestra) si hay contenido real al que avanzar.
 overlayProtector.style.display = contenidoAssets.length > 0 ? 'flex' : 'none';
 mostrarProtector();
-}
 </script>
 	
 </body>
