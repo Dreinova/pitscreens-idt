@@ -123,19 +123,20 @@ function lanzadera(){
 </head>
 	
 <body oncontextmenu="return false" onselectstart="return false" ondragstart="return false" style="overflow:hidden" >
-	
-	<a class="Boton_index" href="frame.php"></a>
-	
-	<section class="section_index">
-		<img class="Mano" src="assets/img/Mano_Touch.svg" alt="Mano"> 
-		<div class="titulo_index">
-			<h2>Toque la pantalla para comenzar</h2>
-		</div>
-		<p class="modulo"><?php echo $modulo; ?></p>
-	</section>
 
-	
 	<div class="item contenedor-medios"></div>
+
+	<a class="kiosk-idle" href="frame.php" aria-label="Toca la pantalla para comenzar">
+		<div class="kiosk-idle-content">
+			<div class="kiosk-touch-badge">
+				<img class="kiosk-touch-icon" src="assets/img/Mano_Touch.svg" alt="">
+			</div>
+			<h2 class="kiosk-idle-title">Toca la pantalla para comenzar</h2>
+			<span class="kiosk-module-pill"><?php echo $modulo; ?></span>
+		</div>
+	</a>
+
+	<a href="assets/php/logout.php" class="kiosk-settings-btn" aria-label="Cambiar módulo" title="Cambiar módulo" onclick="return confirm('¿Cambiar el módulo asignado a este punto?');">&#9881;</a>
 
 	<div id="contenedor_carga">
 		<div id="carga"></div>
@@ -181,17 +182,17 @@ var loopAssets = [
 
 	?>
 	
-	{ contentUrl: "http://localhost/IDT_app/admin/assets/galeria/<?php echo $URLContenido; ?>", contentType: "<?php echo $contentType; ?>", mediaType: "<?php echo $tipoContenido; ?>" },
-	<?php 
+	{ contentUrl: "../admin/assets/galeria/<?php echo $URLContenido; ?>", contentType: "<?php echo $contentType; ?>", mediaType: "<?php echo $tipoContenido; ?>" },
+	<?php
 	}
 		}
 	else{
-		echo '{ contentUrl: "http://localhost/IDT_app/app/assets/media/IDT.mp4", contentType: "video/mp4", mediaType: "video"},';
+		echo '{ contentUrl: "assets/media/IDT.mp4", contentType: "video/mp4", mediaType: "video"},';
 	}
 	?>
-	
-	/*{ contentUrl: "http://localhost/IDT_app/admin/assets/galeria/V1.mp4", contentType: "video/mp4", mediaType: "video"},
-	{ contentUrl: "http://localhost/IDT_app/admin/assets/galeria/I1.jpg", contentType: "image/jpg", mediaType:"image" },*/
+
+	/*{ contentUrl: "../admin/assets/galeria/V1.mp4", contentType: "video/mp4", mediaType: "video"},
+	{ contentUrl: "../admin/assets/galeria/I1.jpg", contentType: "image/jpg", mediaType:"image" },*/
 
 ];
 var previewContainer = $(".contenedor-medios");

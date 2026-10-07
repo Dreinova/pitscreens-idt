@@ -220,7 +220,7 @@ var data = {
 						{
 						label: '0 minutos',
 						data: ['<?php echo $conteoF0; ?>'],
-						backgroundColor: "rgb(0, 155, 204, 1)"
+						backgroundColor: "rgb(27, 79, 140, 1)"
 						}, 
 						{
 						label: 'de 1 a 10 minutos',
@@ -259,7 +259,7 @@ var options = {
         	legend: {
 				  display: true,
 				  labels: {
-					fontColor: '#36a9e1', 
+					fontColor: '#1B4F8C', 
 					boxWidth:50
 				  },
 			},
@@ -267,7 +267,7 @@ var options = {
 			plugins: {
 				  labels: {
 					render: 'value',
-					fontColor: '#36a9e1' 
+					fontColor: '#1B4F8C' 
 				  }
 			},
 
@@ -280,7 +280,7 @@ var options = {
 					  barPercentage: .6,
 					ticks: {
 						beginAtZero:true,
-						fontColor: '#36a9e1'
+						fontColor: '#1B4F8C'
 					},
 					gridLines: {
 					  display: true ,
@@ -291,7 +291,7 @@ var options = {
 				  yAxes: [{
 					ticks: {
 						beginAtZero:false,
-						fontColor: '#36a9e1'
+						fontColor: '#1B4F8C'
 					},
 					gridLines: {
 					  display: false ,
@@ -418,7 +418,7 @@ var data2 = {
         labels: ["0 minutos", "de 1 a 10 minutos", "de 11 a 20 minutos", "de 21 a 30 minutos", "de 31 a 40 minutos", "de 41 a 50 minutos", "de 51 a 60 minutos", "<?php echo 'Desde:'.$desde.' a '.$hasta; ?>" ],
         datasets: [{
 						backgroundColor: [
-							"rgb(0, 155, 204, 1)",
+							"rgb(27, 79, 140, 1)",
 							"rgb(0, 198, 160, 1)",
 							"rgb(59, 190, 0, 1)",
 							"rgb(186, 223, 0, 1)",
@@ -438,7 +438,7 @@ var options2 = {
 				 display: true,
 			     fontSize: 14,
 				 fontStyle: 'bold',
-				 fontColor: '#36a9e1',
+				 fontColor: '#1B4F8C',
 				 boxWidth:50,
 				 textShadow: true
 				},

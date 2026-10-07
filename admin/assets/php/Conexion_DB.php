@@ -26,6 +26,7 @@ $nombre_db  = "idt_app";   // Nombre de la base de datos del sistema
 
 // Crear la conexión usando la extensión MySQLi
 $conexion = mysqli_connect($host_db, $usuario_db, $clave_db, $nombre_db);
+mysqli_set_charset($conexion, 'utf8mb4');
 
 /* Bloque de depuración (descomentar para diagnosticar errores de conexión):
 if (!$conexion) {

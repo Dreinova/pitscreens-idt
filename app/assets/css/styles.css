@@ -1,247 +1,409 @@
-*{
+/* ==========================================================================
+   IDT App — Kiosco (pantalla táctil)
+   Sistema de diseño: moderno, limpio, minimalista. Pensado para pedestales
+   táctiles (sin mouse / sin :hover) con Windows como SO.
+   ========================================================================== */
 
-	padding:0px;
-	margin:0px;
-	
- }
+:root {
+	--color-primary: #1B4F8C;
+	--color-primary-dark: #123B6B;
+	--color-primary-light: #EAF1FA;
+	--color-accent: #F2A93C;
+	--color-bg: #FFFFFF;
+	--color-surface: #FFFFFF;
+	--color-surface-alt: #F7F9FC;
+	--color-border: #E4E7EC;
+	--color-text: #1F2430;
+	--color-text-muted: #6B7280;
+	--color-danger: #E5484D;
 
-*,*:after, *:before{
+	--radius-sm: 10px;
+	--radius-md: 18px;
+	--radius-lg: 28px;
+	--radius-pill: 999px;
+
+	--shadow-sm: 0 2px 10px rgba(18, 42, 74, 0.08);
+	--shadow-md: 0 10px 30px rgba(18, 42, 74, 0.12);
+	--shadow-lg: 0 20px 50px rgba(18, 42, 74, 0.18);
+
+	--transition: 200ms ease;
+	--font-heading: 'MuseoSans700', 'Segoe UI', sans-serif;
+	--font-body: 'MuseoSans500', 'Segoe UI', sans-serif;
+}
+
+*,
+*::after,
+*::before {
 	margin: 0;
 	padding: 0;
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
 	box-sizing: border-box;
+	-webkit-tap-highlight-color: transparent;
 }
 
-body{
-	background:#ffffff;
-	overflow:hidden; 
+html, body {
 	width: 100%;
-	height: 50%;
-	background-repeat: no-repeat;
-	background-position: top;
-	background-size: cover;
-	animation: animacion_body 1s ease-in;
-}
-
-@keyframes animacion_body {
-  0% {
-    opacity:0;
-  }
-  100% {
-    opacity:1;
-  }
-}
-
-a{
-	text-decoration: none;
-	outline:none;
-}
-a :hover{
-	background-color:rgba(255,255,255,0.8) !important;
-	outline:none;
-}
-
-@font-face {
-  font-family: MuseoSans500;
-   src:url("../fonts/MuseoSans500.otf");
-}
-
-@font-face {
-  font-family: MuseoSans700;
-   src:url("../fonts/MuseoSans700.otf");
-}
-
-@font-face {
-  font-family: Roboto-Regular;
-   src:url("../fonts/Roboto-Regular.ttf");
-}
-
-
-#contenedor_carga{
-	background-color: rgba(255,255,255,1.00);
 	height: 100%;
-	width:100%;
-	position: fixed;
-	top: 0;
-	transition: all 1s ease;
-	z-index: 1000;
 }
 
-#carga{
-	border: 15px solid #ccc;
-	border-top-color: #11A2DC;
-	border-top-style: groove;
-	height: 100px;
-	width: 100px;
-	border-radius: 100%;
-	
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	margin: auto;
-	animation: girar 1.5s linear infinite;
+body {
+	background: var(--color-bg);
+	overflow: hidden;
+	color: var(--color-text);
+	font-family: var(--font-body);
+	animation: fade-in 400ms ease-in;
 }
 
-@keyframes girar{
-	from { transform: rotate(0deg);}
-	to {transform: rotate(360deg);}
+@keyframes fade-in {
+	0%   { opacity: 0; }
+	100% { opacity: 1; }
 }
 
-/* Estilos Index */
-
-.Boton_index{
-	position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    z-index: 5;
-    -ms-touch-action: none;
-    -webkit-touch-action: none;
-    touch-action: none;
-    -webkit-touch-callout: none;
+a {
 	text-decoration: none;
+	outline: none;
+	color: inherit;
 }
 
-.section_index{
-	position: fixed;
-    bottom: 0vh;
-    width: 100vw;
-    height: 100vh;
-    padding: 5% 10%;
+button {
+	font-family: inherit;
+	cursor: pointer;
 }
 
-.titulo_index {
-	position: absolute;
-    bottom: 0;
-	width: 80%;
-    height: 8vh;
-    padding: 0%;
+img {
+	max-width: 100%;
+	display: block;
 }
 
-.titulo_index h2 {
+@font-face {
+	font-family: MuseoSans500;
+	src: url("../fonts/MuseoSans500.otf");
+}
+
+@font-face {
 	font-family: MuseoSans700;
+	src: url("../fonts/MuseoSans700.otf");
+}
+
+@font-face {
+	font-family: Roboto-Regular;
+	src: url("../fonts/Roboto-Regular.ttf");
+}
+
+/* ==========================================================================
+   Loader de arranque
+   ========================================================================== */
+
+#contenedor_carga {
+	background-color: var(--color-bg);
+	height: 100%;
+	width: 100%;
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: opacity 400ms ease, visibility 400ms ease;
+}
+
+#carga {
+	border: 6px solid var(--color-primary-light);
+	border-top-color: var(--color-primary);
+	height: 64px;
+	width: 64px;
+	border-radius: 100%;
+	animation: girar 900ms linear infinite;
+}
+
+@keyframes girar {
+	from { transform: rotate(0deg); }
+	to   { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   Botones e inputs reutilizables
+   ========================================================================== */
+
+.kiosk-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	font-family: var(--font-body);
+	font-size: clamp(16px, 2.1vh, 26px);
 	color: #FFFFFF;
-	font-size: 2.3vh;
-    text-align: center;
-    text-shadow: 3px 3px 3px rgb(0 0 0 / 80%);
+	background: var(--color-primary);
+	border: none;
+	border-radius: var(--radius-pill);
+	padding: clamp(16px, 2.4vh, 26px) clamp(28px, 4vw, 56px);
+	box-shadow: var(--shadow-md);
+	transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
 }
 
-.Mano{
-    position: absolute;
-    z-index: 4;
-    left: 0%;
-    bottom: 10%;
-    width: 65%;
+.kiosk-btn:active {
+	transform: scale(0.97);
+	background: var(--color-primary-dark);
+	box-shadow: var(--shadow-sm);
 }
 
-
-/*Animacion Mano*/
-
-.Mano{
-  animation: Animacion_Mano linear 3s;
-  animation-iteration-count: infinite;
-  transform-origin: 50% 50%;
-  -webkit-animation: Animacion_Mano linear 3s;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-transform-origin: 50% 50%;
-  -moz-animation: Animacion_Mano linear 3s;
-  -moz-animation-iteration-count: infinite;
-  -moz-transform-origin: 50% 50%;
-  -o-animation: Animacion_Mano linear 3s;
-  -o-animation-iteration-count: infinite;
-  -o-transform-origin: 50% 50%;
-  -ms-animation: Animacion_Mano linear 3s;
-  -ms-animation-iteration-count: infinite;
-  -ms-transform-origin: 50% 50%;
+.kiosk-btn--block {
+	display: flex;
+	width: 100%;
 }
 
-@keyframes Animacion_Mano{
-  0% {
-    transform:  scaleX(1.00) scaleY(1.00) ;
-  }
-  50% {
-    transform:  scaleX(1.20) scaleY(1.20) ;
-  }
-  100% {
-    transform:  scaleX(1.00) scaleY(1.00) ;
-  }
+.kiosk-btn--ghost {
+	background: var(--color-surface);
+	color: var(--color-primary);
+	border: 2px solid var(--color-border);
+	box-shadow: none;
 }
 
-@-moz-keyframes Animacion_Mano{
-  0% {
-    -moz-transform:  scaleX(1.00) scaleY(1.00) ;
-  }
-  50% {
-    -moz-transform:  scaleX(1.20) scaleY(1.20) ;
-  }
-  100% {
-    -moz-transform:  scaleX(1.00) scaleY(1.00) ;
-  }
+.kiosk-btn--ghost:active {
+	background: var(--color-primary-light);
+	border-color: var(--color-primary);
 }
 
-@-webkit-keyframes Animacion_Mano {
-  0% {
-    -webkit-transform:  scaleX(1.00) scaleY(1.00) ;
-  }
-  50% {
-    -webkit-transform:  scaleX(1.20) scaleY(1.20) ;
-  }
-  100% {
-    -webkit-transform:  scaleX(1.00) scaleY(1.00) ;
-  }
+.kiosk-input,
+.kiosk-select {
+	width: 100%;
+	font-family: var(--font-body);
+	font-size: clamp(15px, 1.8vh, 22px);
+	color: var(--color-text);
+	background: var(--color-surface-alt);
+	border: 2px solid var(--color-border);
+	border-radius: var(--radius-md);
+	padding: clamp(16px, 2.2vh, 24px) clamp(18px, 2vw, 24px);
+	transition: border-color var(--transition), background var(--transition);
 }
 
-@-o-keyframes Animacion_Mano {
-  0% {
-    -o-transform:  scaleX(1.00) scaleY(1.00) ;
-  }
-  50% {
-    -o-transform:  scaleX(1.20) scaleY(1.20) ;
-  }
-  100% {
-    -o-transform:  scaleX(1.00) scaleY(1.00) ;
-  }
+.kiosk-input:focus,
+.kiosk-select:focus {
+	outline: none;
+	border-color: var(--color-primary);
+	background: var(--color-surface);
 }
 
-@-ms-keyframes Animacion_Mano {
-  0% {
-    -ms-transform:  scaleX(1.00) scaleY(1.00) ;
-  }
-  50% {
-    -ms-transform:  scaleX(1.20) scaleY(1.20) ;
-  }
-  100% {
-    -ms-transform:  scaleX(1.00) scaleY(1.00) ;
-  }
+.kiosk-select {
+	text-align-last: center;
+	appearance: none;
+	-webkit-appearance: none;
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231B4F8C' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right clamp(16px, 2vw, 22px) center;
+	background-size: clamp(18px, 2.2vh, 26px);
+	padding-right: clamp(46px, 5vw, 60px);
 }
 
-/*Fin Animacion Mano*/
+/* ==========================================================================
+   Layout compartido: header / footer / tarjeta central
+   ========================================================================== */
 
-.contenedor-medios{
+.kiosk-topbar {
+	position: relative;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: clamp(20px, 4vh, 48px) clamp(20px, 4vw, 40px) clamp(8px, 2vh, 16px);
+}
+
+.kiosk-topbar-logo {
+	width: clamp(220px, 34vw, 420px);
+}
+
+.kiosk-main {
+	position: relative;
+	z-index: 2;
+	display: flex;
+	flex: 1;
+	align-items: center;
+	justify-content: center;
+	padding: clamp(12px, 3vh, 32px) clamp(24px, 6vw, 80px);
+}
+
+.kiosk-footer {
+	position: relative;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: clamp(16px, 3vh, 32px);
+}
+
+.kiosk-footer-logo {
+	width: clamp(160px, 22vw, 260px);
+	opacity: 0.85;
+}
+
+.kiosk-card {
+	width: 100%;
+	max-width: 720px;
+	background: var(--color-surface);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-lg);
+	padding: clamp(28px, 5vh, 56px) clamp(24px, 5vw, 56px);
+	text-align: center;
+}
+
+.kiosk-heading {
+	font-family: var(--font-heading);
+	color: var(--color-primary);
+	font-size: clamp(22px, 3.4vh, 40px);
+	line-height: 1.25;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin-bottom: clamp(10px, 1.6vh, 18px);
+}
+
+.kiosk-subtext {
+	font-family: var(--font-body);
+	color: var(--color-text-muted);
+	font-size: clamp(14px, 1.9vh, 20px);
+	line-height: 1.5;
+	margin-bottom: clamp(24px, 4vh, 40px);
+}
+
+.kiosk-form {
+	display: flex;
+	flex-direction: column;
+	gap: clamp(14px, 2vh, 20px);
+}
+
+.kiosk-field {
+	text-align: left;
+}
+
+/* ==========================================================================
+   Pantalla de selección de módulo — log_index.php
+   ========================================================================== */
+
+.kiosk-select-wrap {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+/* ==========================================================================
+   Pantalla de espera / slideshow — index.php
+   ========================================================================== */
+
+.contenedor-medios {
+	position: fixed;
+	inset: 0;
 	width: 100vw;
 	height: 100vh;
+	z-index: 1;
+	background: #000;
 }
 
-#lp-preview-video{
+#lp-preview-video,
+#lp-preview-image {
 	width: 100vw;
 	height: 100vh;
+	object-fit: cover;
 }
 
-#lp-preview-image{
-	width: 100vw;
+.kiosk-idle {
+	position: fixed;
+	inset: 0;
+	z-index: 5;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	-ms-touch-action: none;
+	touch-action: none;
+	-webkit-touch-callout: none;
+	background: linear-gradient(180deg, rgba(0, 0, 0, 0) 45%, rgba(6, 20, 38, 0.72) 100%);
+}
+
+.kiosk-idle-content {
+	position: relative;
+	z-index: 2;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: clamp(14px, 2.4vh, 24px);
+	padding-bottom: clamp(48px, 9vh, 120px);
+	width: 100%;
+}
+
+.kiosk-touch-badge {
+	width: clamp(90px, 14vh, 160px);
+	height: clamp(90px, 14vh, 160px);
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.14);
+	border: 2px solid rgba(255, 255, 255, 0.5);
+	backdrop-filter: blur(4px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	animation: pulso 1.8s ease-in-out infinite;
+}
+
+.kiosk-touch-icon {
+	width: 55%;
+	filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+}
+
+@keyframes pulso {
+	0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.25); }
+	50%      { transform: scale(1.08); box-shadow: 0 0 0 18px rgba(255, 255, 255, 0); }
+}
+
+.kiosk-idle-title {
+	font-family: var(--font-heading);
+	color: #FFFFFF;
+	font-size: clamp(18px, 2.6vh, 32px);
+	text-align: center;
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+	padding: 0 clamp(20px, 5vw, 60px);
+}
+
+.kiosk-settings-btn {
+	position: fixed;
+	z-index: 6;
+	top: clamp(10px, 1.6vh, 20px);
+	right: clamp(10px, 1.6vw, 20px);
+	width: clamp(38px, 5vh, 52px);
+	height: clamp(38px, 5vh, 52px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.14);
+	color: rgba(255, 255, 255, 0.45);
+	font-size: clamp(17px, 2.3vh, 24px);
+	-ms-touch-action: manipulation;
+	touch-action: manipulation;
+	transition: background var(--transition), color var(--transition), transform var(--transition);
+}
+
+.kiosk-settings-btn:active {
+	transform: scale(0.92);
+	background: rgba(255, 255, 255, 0.28);
+	color: rgba(255, 255, 255, 0.85);
+}
+
+.kiosk-module-pill {
+	font-family: var(--font-body);
+	font-size: clamp(11px, 1.4vh, 16px);
+	color: #FFFFFF;
+	background: rgba(27, 79, 140, 0.55);
+	border: 1px solid rgba(255, 255, 255, 0.35);
+	border-radius: var(--radius-pill);
+	padding: 8px 20px;
+	letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   Contenido / iframe — frame.php
+   ========================================================================== */
+
+.section_contenido {
+	display: block;
+	width: 100%;
 	height: 100vh;
-}
-
-/* Seccion Frame */
-
-.section_contenido{
-	display: inline-block;
-    width: 100%;
-    height: 100vh;
 }
 
 .container {
@@ -249,246 +411,115 @@ a :hover{
 	width: 100%;
 	height: 100vh;
 	overflow: hidden;
+	background: var(--color-surface-alt);
 }
 
 .responsive-iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-/* Estilos Registro */
-
-.header_contenido{
-	float: left;
-	width: 100%;
-	height: 14vh;
-	padding: 8% 16%;
-}
-
-.header_contenido h1{
-	font-family: MuseoSans700;
-	color: #205198;
-	font-size: 3vh;
-    text-align: center;
-	text-transform: uppercase;
-}
-
-.section_contenido_registro{
-	float: left;
-    width: 100%;
-    height: 74vh;
-	padding: 5% 15%;
-}
-
-.section_contenido_registro h3{
-	font-family: MuseoSans500;
-	color: #205198;
-	font-size: 2vh;
-    text-align: center;
-	margin: 5%
-}
-.section_contenido_registro p{
-	font-family: MuseoSans500;
-	color: #272727;
-	font-size: 1.6vh;
-    text-align: center;
-	margin: 5%
-}
-
-.formulario{
-	width: fit-content;
-}
-
-.formulario select{
-	font-family: MuseoSans500;
-	color: #272727;
-	font-size: 1.4vh;
-	border-radius: 15px;
-	padding: 20px;
-    width: 48%;
-    margin: 1%;
-    float: left;
-}
-
-.formulario input {
-	font-family: MuseoSans500;
-	color: #272727;
-    font-size: 1.4vh;
-    border-radius: 15px;
-    padding: 20px;
-    width: 48%;
-    margin: 1%;
-    float: left;
-}
-
-.datos{
-	width: 100%;
-    float: left;
-    margin: 8% 0%;
-}
-.datos .aceptar_politicas{
-	width: 24%;
-	margin: 1%;
-	float:left;
-	font-size: 1.4vh;
-}
-
-.datos .politicas{
-	width: 72%;
-	margin: 1%;
-	float: left;
-	text-align: left;
-	font-size: 1.2vh;
-}
-
-.input_politicas{
-	width: 30px !important;
-    height: 30px !important;
-    float: left !important;
-    margin: 15px !important;
-	padding: 0 !important;
-}
-
-.boton_atras{
-	font-family: MuseoSans500 !important;
-	color: #FFFFFF !important;
-	font-size: 1.4vh !important;
-	width: 25% !important;
-    height: 8vw !important;
-    margin: 5% !important;
-    float: right !important;
-    background-color: #205198 !important;
-	border-radius: 20px !important;
-	padding: 4% 8%;
-}
-
-.boton_continuar{
-	font-family: MuseoSans500 !important;
-	color: #FFFFFF !important;
-	font-size: 1.4vh !important;
-	width: 25% !important;
-    height: 8vw !important;
-    margin: 5% !important;
-    float: right !important;
-    background-color: #205198 !important;
-	border-radius: 20px !important;
-}
-
-.footer_contenido{
-	float: left;
-    width: 100%;
-    height: 12vh;
-}
-
-.footer_contenido img{
-    width: 50%;
-	margin: 6% 25%;
-}
-
-/* Estilos Login */
-
-.login{
-	width: 50%;
-    margin: 10% 25% 10% 26%;
-    float: left;
-}
-
-.login input{
-	font-family: MuseoSans500;
-	color: #272727;
-    font-size: 1.4vh;
-    border-radius: 15px;
-    padding: 20px;
-    width: 100%;
-    margin: 1%;
-    float: left;
-}
-
-.regresar{
-	font-family: MuseoSans500;
-    color: #FFFFFF;
-    font-size: 1.2vh;
-    text-align: center;
-    padding: 3%;
-    background-color: #205198;
-    border-radius: 20px;
-    position: absolute;
-    top: 60%;
-    left: 2%;
-    z-index: 2;
-}
-
-/* Estilos login módulo */
-
-.header_login{
-	float: left;
-    margin: 20% 5%;
-	width: 90%;
-}
-
-.logo_login{
-	width: 80%;
-    margin: 5% auto;
-    display: block!important;
-}
-
-.section_login{
-	float: left;
-    margin: 5%;
-	width: 90%;
-	height: 45vh;
-}
-
-.section_login h2 {
-	font-family: MuseoSans500;
-    color: #205198;
-    font-size: 1.5vh;
-    text-align: center;
-}
-
-.seleccion_modulo{
-	margin: 10%;
-}
-
-.seleccion_modulo select {
-	box-shadow: 3px 3px 3px 0px #000000;
-    width: 45vw;
-    height: 5vh;
-    border-radius: 20px;
-    margin: 10% auto;
-    display: block;
-    font-family: MuseoSans500;
-    text-align-last: center;
-    font-size: 1.5em;
-    color: #454545;
-}
-
-.seleccion_modulo button {
-	background: linear-gradient(to bottom, #11a3dc 5%, #008ec6 100%);
-    background-color: #11a3dc;
-    border-radius: 20px ;
-    border: 5px solid #0071bc;
-    display: block;
-    cursor: pointer;
-    color: #ffffff;
-    text-align: center ;
-    font-size: 1.8vh ;
-    text-decoration: none;
-    text-shadow: 2px 2px 3px rgb(0 0 0 / 80%);
-    padding: 2% 5%;
-    margin: 2% auto;
-    float: none ;
-}
-
-.modulo{
 	position: absolute;
-	bottom: 0;
-	left: 0;
-	font-size: 16px;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	border: none;
+}
+
+.regresar {
+	position: absolute;
+	z-index: 20;
+	top: clamp(16px, 3vh, 32px);
+	left: clamp(16px, 3vw, 32px);
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	font-family: var(--font-body);
+	font-size: clamp(13px, 1.6vh, 18px);
+	color: var(--color-primary);
+	background: rgba(255, 255, 255, 0.92);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-pill);
+	padding: clamp(10px, 1.6vh, 16px) clamp(18px, 2.2vw, 26px);
+	box-shadow: var(--shadow-md);
+	transition: transform var(--transition), background var(--transition);
+}
+
+.regresar::before {
+	content: "\2190";
+	font-size: 1.1em;
+}
+
+.regresar:active {
+	transform: scale(0.96);
+	background: var(--color-primary-light);
+}
+
+/* ==========================================================================
+   Registro — registro.php
+   ========================================================================== */
+
+.kiosk-form-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: clamp(12px, 1.8vh, 18px);
+	text-align: left;
+}
+
+.kiosk-form-grid .kiosk-field--full {
+	grid-column: 1 / -1;
+}
+
+.kiosk-policy {
+	grid-column: 1 / -1;
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	background: var(--color-surface-alt);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	padding: clamp(14px, 2vh, 20px);
+	text-align: left;
+}
+
+.kiosk-policy input[type="checkbox"] {
+	width: clamp(24px, 3vh, 32px);
+	height: clamp(24px, 3vh, 32px);
+	accent-color: var(--color-primary);
+	flex-shrink: 0;
+	margin-top: 2px;
+}
+
+.kiosk-policy p {
+	font-family: var(--font-body);
+	font-size: clamp(11px, 1.35vh, 15px);
+	color: var(--color-text-muted);
+	line-height: 1.5;
+}
+
+/* ==========================================================================
+   Utilidades
+   ========================================================================== */
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+}
+
+#tiempo {
+	position: absolute;
+	width: 0;
+	height: 0;
+	overflow: hidden;
+}
+
+/* Pantallas angostas (kiosco en orientación vertical / totem) */
+@media (max-width: 640px) {
+	.kiosk-form-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.kiosk-card {
+		border-radius: var(--radius-md);
+	}
 }

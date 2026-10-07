@@ -93,12 +93,12 @@ $funcion_user = $datos['Funcion'];
 			echo '	
 	<div class="col-12 col-lg-2">
 	    <div class="card">
-		 <img src="assets/images/Users_bottom.png" class="card-img-top" alt="Card image cap">
-			<div class="card-body">
+			<div class="card-body text-center">
+				<div class="dash-icon-badge"><i class="icon-people"></i></div>
 				<h4 class="card-title">Gestión de Usuarios</h4>
 				<h6>Creación, edición o eliminación de los usuarios que pueden acceder a este software.</h6>
 				<hr>
-                <a href="usuarios.php" class="btn btn-light btn-sm text-white"><i class="icon-people icons"></i> Gestión de Usuarios</a>
+                <a href="usuarios.php" class="btn btn-primary btn-sm"><i class="icon-people icons"></i> Gestión de Usuarios</a>
 			</div>
 		</div>
 	   </div>
@@ -108,36 +108,36 @@ $funcion_user = $datos['Funcion'];
 		
 		<div class="col-12 col-lg-2">
 	    <div class="card">
-		 <img src="assets/images/Edicion_button.png" class="card-img-top" alt="Card image cap">
-			<div class="card-body">
+			<div class="card-body text-center">
+				<div class="dash-icon-badge"><i class="zmdi zmdi-edit"></i></div>
 				<h4 class="card-title">Programación</h4>
 				<h6>Edite que imágenes o video se mostrara en la aplicación</h6>
 				<hr>
-                <a href="programacion.php" class="btn btn-light btn-sm text-white"><i class="zmdi zmdi-edit"></i> Edición</a>
+                <a href="programacion.php" class="btn btn-primary btn-sm"><i class="zmdi zmdi-edit"></i> Edición</a>
 			</div>
 		</div>
 	   </div>
 	   
 		<div class="col-12 col-lg-2">
 	    <div class="card">
-		  <img src="assets/images/Galeria_button.png" class="card-img-top" alt="Contenido">
-			<div class="card-body">
+			<div class="card-body text-center">
+				<div class="dash-icon-badge"><i class="zmdi zmdi-image"></i></div>
 				<h4 class="card-title">Contenido</h4>
 				<h6>Suba, edite y elimine las imágenes que usara en la aplicación</h6>
 				<hr>
-                <a href="contenido.php" class="btn btn-light btn-sm text-white"><i class="zmdi zmdi-image"></i> Contenido</a>
+                <a href="contenido.php" class="btn btn-primary btn-sm"><i class="zmdi zmdi-image"></i> Contenido</a>
 			</div>
 		</div>
 	   </div>
 		
 		<div class="col-12 col-lg-2">
 	    <div class="card">
-		  <img src="assets/images/Modulos.jpg" class="card-img-top" alt="Contenido">
-			<div class="card-body">
+			<div class="card-body text-center">
+				<div class="dash-icon-badge"><i class="fa fa-crop"></i></div>
 				<h4 class="card-title">Frame</h4>
 				<h6>edite que pagina se visualizara en la aplicación</h6>
 				<hr>
-                <a href="frame.php" class="btn btn-light btn-sm text-white"><i class="zmdi zmdi-image"></i> Contenido</a>
+                <a href="frame.php" class="btn btn-primary btn-sm"><i class="fa fa-crop"></i> Frame</a>
 			</div>
 		</div>
 	   </div>
@@ -146,12 +146,12 @@ $funcion_user = $datos['Funcion'];
 				  echo '
 	   <div class="col-12 col-lg-2">
 	    <div class="card">
-		 <img src="assets/images/Estadisticas_Bottom.png" class="card-img-top" alt="Card image cap">
-			<div class="card-body">
+			<div class="card-body text-center">
+				<div class="dash-icon-badge"><i class="zmdi zmdi-chart"></i></div>
 				<h4 class="card-title">Estadísticas</h4>
 				<h6>Visualice el alcance de uso de cada módulo que se ha usado.</h6>
 				<hr>
-                <a href="reporte_tabla.php" class="btn btn-light btn-sm text-white"><i class="zmdi zmdi-chart"></i> Estadísticas</a>
+                <a href="reporte_tabla.php" class="btn btn-primary btn-sm"><i class="zmdi zmdi-chart"></i> Estadísticas</a>
 			</div>
 		</div>
 	   </div>

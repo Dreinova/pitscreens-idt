@@ -5,9 +5,10 @@
 $host_db = "localhost"; // Host de la BD
 $usuario_db = "root"; // Usuario de la BD
 $clave_db = ""; // Contraseña de la BD
-$nombre_db = "supersubsidio"; // Nombre de la BD
+$nombre_db = "idt_app"; // Nombre de la BD
 
 $conexion = mysqli_connect($host_db, $usuario_db, $clave_db, $nombre_db);
+mysqli_set_charset($conexion, 'utf8mb4');
 
 /*if (!$conexion) {
     echo "Error: No se pudo conectar a MySQL." . PHP_EOL;

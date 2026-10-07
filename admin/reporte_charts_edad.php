@@ -260,7 +260,7 @@ var options = {
         	legend: {
 				  display: true,
 				  labels: {
-					fontColor: '#36a9e1', 
+					fontColor: '#1B4F8C', 
 					boxWidth:50
 				  },
 			},
@@ -268,7 +268,7 @@ var options = {
 			plugins: {
 				  labels: {
 					render: 'value',
-					fontColor: '#36a9e1' 
+					fontColor: '#1B4F8C' 
 				  }
 			},
 
@@ -281,7 +281,7 @@ var options = {
 					  barPercentage: .6,
 					ticks: {
 						beginAtZero:true,
-						fontColor: '#36a9e1'
+						fontColor: '#1B4F8C'
 					},
 					gridLines: {
 					  display: true ,
@@ -292,7 +292,7 @@ var options = {
 				  yAxes: [{
 					ticks: {
 						beginAtZero:false,
-						fontColor: '#36a9e1'
+						fontColor: '#1B4F8C'
 					},
 					gridLines: {
 					  display: false ,
@@ -423,7 +423,7 @@ var data2 = {
 						backgroundColor: [
 							"rgb(0, 198, 160, 1)",
 							"rgba(0, 175, 207, 1)",
-							"rgb(0, 155, 204, 1)",
+							"rgb(27, 79, 140, 1)",
 							"rgba(0, 135, 195, 1)",
 							"rgb(0, 116, 191, 1)",
 							"rgba(0, 64, 186, 1)",
@@ -440,7 +440,7 @@ var options2 = {
 				 display: true,
 			     fontSize: 14,
 				 fontStyle: 'bold',
-				 fontColor: '#36a9e1',
+				 fontColor: '#1B4F8C',
 				 boxWidth:50,
 				 textShadow: true
 				},

@@ -2,8 +2,9 @@
 <div id="sidebar-wrapper" data-simplebar="" data-simplebar-auto-hide="true">
 	
 	<div class="brand-logo">
-      <a href="index.php">
-       <img src="assets/images/Logo_2.png" style="width: 180px; margin-right: 5px;" alt="logo icon">
+      <a href="index.php" class="brand-logo-link">
+       <img src="assets/images/Favicon.png" class="brand-logo-icon" alt="">
+       <span class="brand-logo-text">IDT App</span>
      </a>
    </div>
 	   

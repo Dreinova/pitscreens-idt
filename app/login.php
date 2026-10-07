@@ -50,29 +50,31 @@ function lanzadera(){
 </head>
 	
 <body oncontextmenu="return false" onselectstart="return false" ondragstart="return false" style="overflow:hidden" onkeypress="parar()" onclick="parar()" >
-	
-	<section class="header_contenido">
-	  <h1>Bienvenido a<br>IDT App</h1>
-	</section>
-	
-	<section class="section_contenido_registro">
-		<p style="margin-top: 45%;">Ingresa tu documento en el lector o coloca el número de tu documento</p>
-			<form action="comprobacion.php" onsubmit="return marcado();" method="POST" autocomplete="off">
-				
-				<div class="login">
-					<input  type="text" name="cedula" placeholder="Número de documento" required autofocus>
-					<input  type="hidden" name="nombres" >
-					<input  type="hidden" name="apellidos" >
+
+	<header class="kiosk-topbar">
+		<img class="kiosk-topbar-logo" src="assets/img/Logos_Alcaldia.png" alt="Alcaldía de Bogotá">
+	</header>
+
+	<main class="kiosk-main">
+		<div class="kiosk-card">
+			<h1 class="kiosk-heading">Bienvenido a<br>IDT App</h1>
+			<p class="kiosk-subtext">Ingresa tu documento en el lector o escribe tu número de documento</p>
+
+			<form class="kiosk-form" action="comprobacion.php" method="POST" autocomplete="off">
+				<div class="kiosk-field">
+					<label class="sr-only" for="cedula">Número de documento</label>
+					<input class="kiosk-input" id="cedula" type="text" name="cedula" placeholder="Número de documento" required autofocus>
 				</div>
 
-				<input class="boton_continuar" type="submit" id="submit" value="Continuar">
-				
-			</form>		
-	</section>
-	
-	<section class="footer_contenido">
-    <img src="assets/img/Logos_Alcaldia.png"  alt="Alcaldia de Bogota - IDT"/> </section>
-	
+				<button class="kiosk-btn kiosk-btn--primary kiosk-btn--block" type="submit" id="submit">Continuar</button>
+			</form>
+		</div>
+	</main>
+
+	<footer class="kiosk-footer">
+		<img class="kiosk-footer-logo" src="assets/img/Logos_Alcaldia.png" alt="Alcaldía de Bogotá">
+	</footer>
+
 	<div id="contenedor_carga">
 	  <div id="carga"></div>
 	</div>

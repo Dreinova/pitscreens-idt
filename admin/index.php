@@ -122,7 +122,7 @@ if(isset($_POST['btn-entrar'])){
 		<div class="card-body">
 		 <div class="card-content p-2">
 		 	<div class="text-center">
-		 		<img src="assets/images/Logo_1.png" width="350"  alt="logo icon">
+		 		<img src="assets/images/Logo_Alcaldia.png" class="login-logo" alt="Instituto Distrital de Turismo - Bogotá">
 		 	</div>
 		  <div class="card-title text-uppercase text-center py-3">Inicio de Sesión</div>
 			 <?php 

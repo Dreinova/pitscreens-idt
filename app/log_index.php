@@ -83,29 +83,35 @@ function lanzadera(){
 	
 <body oncontextmenu="return false" onselectstart="return false" ondragstart="return false">
 
-			<header class="header_login">
-				<img class="logo_login" src="assets/img/Logos_Alcaldia.png" alt="Alcaldia de Bogotá" >
-			</header>
-	
-			<section  class="section_login">
-				<h2>Seleccione el perfil de este módulo</h2>
-				<div class="seleccion_modulo">
-					<form  action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST">
-						<select name="modulo">
+	<div class="kiosk-select-wrap">
+		<header class="kiosk-topbar">
+			<img class="kiosk-topbar-logo" src="assets/img/Logos_Alcaldia.png" alt="Alcaldía de Bogotá">
+		</header>
+
+		<main class="kiosk-main">
+			<div class="kiosk-card">
+				<h2 class="kiosk-heading">Selecciona el módulo<br>de este punto</h2>
+				<p class="kiosk-subtext">Este ajuste solo debe hacerse una vez al configurar la pantalla</p>
+				<form class="kiosk-form" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST">
+					<div class="kiosk-field">
+						<label class="sr-only" for="modulo">Módulo</label>
+						<select class="kiosk-select" id="modulo" name="modulo">
 							 <?php
-								foreach ($consulta_modulo as $modulos){ 
+								foreach ($consulta_modulo as $modulos){
 									$nombre_modulo = $modulos['nombre_modulo'];
 									$ubicacion_modulo = $modulos['ubicacion'];
 							 ?>
 								<option value="<?php echo $nombre_modulo; ?>"><?php echo $nombre_modulo.' '.$ubicacion_modulo; ?></option>
 							<?php } ?>
 						</select>
-						 
-						<button type="submit" class="boton_login" name="entrar">Iniciar</button>
-					</form>
-				</div>
-			</section>
-	
+					</div>
+
+					<button type="submit" class="kiosk-btn kiosk-btn--primary kiosk-btn--block" name="entrar">Iniciar</button>
+				</form>
+			</div>
+		</main>
+	</div>
+
 	<div id="contenedor_carga">
 		<div id="carga"></div>
 	</div>

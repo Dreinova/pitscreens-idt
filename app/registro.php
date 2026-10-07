@@ -47,49 +47,63 @@ function lanzadera(){
 </head>
 
 <body oncontextmenu="return false" onselectstart="return false" ondragstart="return false" style="overflow:hidden" onkeypress="parar()" onclick="parar()" >
-	
-	<section class="header_contenido">
-	  <h1>Debes registrarte para<br>continuar</h1>
-	</section>
-	
-	<section class="section_contenido_registro">
-		<p>Ingresa tu documento en el lector o completa tus datos en el formulario</p>
-		
-		<div class="formulario">
-			<form action="datos_visitantes.php" onsubmit="return marcado();" method="POST" autocomplete="off">
+
+	<header class="kiosk-topbar">
+		<img class="kiosk-topbar-logo" src="assets/img/Logos_Alcaldia.png" alt="Alcaldía de Bogotá">
+	</header>
+
+	<main class="kiosk-main">
+		<div class="kiosk-card" style="max-width: 900px;">
+			<h1 class="kiosk-heading">Debes registrarte<br>para continuar</h1>
+			<p class="kiosk-subtext">Ingresa tu documento en el lector o completa tus datos en el formulario</p>
+
+			<form action="datos_visitantes.php" method="POST" autocomplete="off">
 				<input type="hidden" name="modulo" value="<?php echo $modulo; ?> ">
-																				
-				<select name="tipodocumento" required>
-					<option selected>Cédula de ciudadanía</option>
-					<option>Cédula de extranjería</option>
-					<option>Tarjeta de Identidad</option>
-					<option>Pasaporte</option>
-				</select>
-				
-				<input type="text" name="cedula" placeholder="Número de documento" required autofocus>
-				
-				<input name="nombres" type="texto" placeholder="Nombres" required > 
-				
-				<input name="apellidos" type="texto" placeholder="Apellidos" required> 			
-				
-				<div class="datos">
-					<p class="politicas" >He completado estos datos voluntariamente,<br>Conozca nuestra política de manejo de datos en  http://www.bogotaturismo.gov.co/</p>
-					
-					<p class="aceptar_politicas">
-						<input class="input_politicas" type="checkbox" required  name="aceptar" id="aceptar">
-						<span>Acepto Términos</span>
-					</p>
+
+				<div class="kiosk-form-grid">
+					<div class="kiosk-field kiosk-field--full">
+						<label class="sr-only" for="tipodocumento">Tipo de documento</label>
+						<select class="kiosk-select" id="tipodocumento" name="tipodocumento" required>
+							<option selected>Cédula de ciudadanía</option>
+							<option>Cédula de extranjería</option>
+							<option>Tarjeta de Identidad</option>
+							<option>Pasaporte</option>
+						</select>
+					</div>
+
+					<div class="kiosk-field">
+						<label class="sr-only" for="cedula">Número de documento</label>
+						<input class="kiosk-input" id="cedula" type="text" name="cedula" placeholder="Número de documento" required autofocus>
+					</div>
+
+					<div class="kiosk-field">
+						<label class="sr-only" for="nombres">Nombres</label>
+						<input class="kiosk-input" id="nombres" name="nombres" type="text" placeholder="Nombres" required>
+					</div>
+
+					<div class="kiosk-field kiosk-field--full">
+						<label class="sr-only" for="apellidos">Apellidos</label>
+						<input class="kiosk-input" id="apellidos" name="apellidos" type="text" placeholder="Apellidos" required>
+					</div>
+
+					<div class="kiosk-policy">
+						<input type="checkbox" required name="aceptar" id="aceptar">
+						<p>
+							<label for="aceptar">Acepto que he completado estos datos voluntariamente. Conoce nuestra política de manejo de datos en bogotaturismo.gov.co</label>
+						</p>
+					</div>
 				</div>
-				
-				<input class="boton_continuar" type="submit" id="submit" value="Continuar">
-				
-			</form>		
+
+				<button class="kiosk-btn kiosk-btn--primary kiosk-btn--block" type="submit" id="submit" style="margin-top: 20px;">Continuar</button>
+
+			</form>
 		</div>
-	</section>
-	
-	<section class="footer_contenido">
-    <img src="assets/img/Logos_Alcaldia.png"  alt="Alcaldia de Bogota - IDT"/> </section>
-	
+	</main>
+
+	<footer class="kiosk-footer">
+		<img class="kiosk-footer-logo" src="assets/img/Logos_Alcaldia.png" alt="Alcaldía de Bogotá">
+	</footer>
+
 	<div id="contenedor_carga">
 	  <div id="carga"></div>
 	</div>

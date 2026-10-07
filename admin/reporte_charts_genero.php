@@ -191,12 +191,12 @@ var data = {
 						{
 						label: 'Hombres',
 						data: ['<?php echo $conteoF1; ?>'],
-						backgroundColor: "rgb(0, 155, 204, 1)"
+						backgroundColor: "rgb(27, 79, 140, 1)"
 						}, 
 						{
 						label: 'Mujeres',
 						data: ['<?php echo $conteoF2; ?>'],
-						backgroundColor: "rgba(255, 121, 0, 1)"
+						backgroundColor: "rgba(242, 169, 60, 1)"
 						},
 						{
 						label: 'No especifica',
@@ -209,7 +209,7 @@ var options = {
         	legend: {
 				  display: true,
 				  labels: {
-					fontColor: '#36a9e1', 
+					fontColor: '#1B4F8C', 
 					boxWidth:50
 				  },
 			},
@@ -217,7 +217,7 @@ var options = {
 			plugins: {
 				  labels: {
 					render: 'value',
-					fontColor: '#36a9e1' 
+					fontColor: '#1B4F8C' 
 				  }
 			},
 
@@ -230,7 +230,7 @@ var options = {
 					  barPercentage: .6,
 					ticks: {
 						beginAtZero:true,
-						fontColor: '#36a9e1'
+						fontColor: '#1B4F8C'
 					},
 					gridLines: {
 					  display: true ,
@@ -241,7 +241,7 @@ var options = {
 				  yAxes: [{
 					ticks: {
 						beginAtZero:false,
-						fontColor: '#36a9e1'
+						fontColor: '#1B4F8C'
 					},
 					gridLines: {
 					  display: false ,
@@ -347,8 +347,8 @@ var data2 = {
         labels: ["Hombre", "Mujer", "No especifica", "<?php echo 'Desde:'.$desde.' a '.$hasta; ?>" ],
         datasets: [{
 						backgroundColor: [
-							"rgb(0, 155, 204, 1)",
-							"rgba(255, 121, 0, 1)",
+							"rgb(27, 79, 140, 1)",
+							"rgba(242, 169, 60, 1)",
 							"rgba(250, 250, 250, 1)",
 							"rgba(250, 250, 250, 0)"
 						],
@@ -362,7 +362,7 @@ var options2 = {
 				 display: true,
 			     fontSize: 14,
 				 fontStyle: 'bold',
-				 fontColor: '#36a9e1',
+				 fontColor: '#1B4F8C',
 				 boxWidth:50,
 				 textShadow: true
 				},
