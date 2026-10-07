@@ -9,6 +9,7 @@ session_start([
 /*  verificacion login  */
 if(!isset($_SESSION['logeado'])){
 	header('Location: index.php');
+	exit();
 }
 
 /* datos de usuario */
@@ -134,8 +135,8 @@ $funcion_user = $datos['Funcion'];
 	    <div class="card">
 			<div class="card-body text-center">
 				<div class="dash-icon-badge"><i class="fa fa-crop"></i></div>
-				<h4 class="card-title">Frame</h4>
-				<h6>edite que pagina se visualizara en la aplicación</h6>
+				<h4 class="card-title">Frame <span class="badge badge-warning" title="No tiene ningún punto de entrada desde el kiosco actualmente">No conectado</span></h4>
+				<h6>Edite la URL del iframe — actualmente sin punto de entrada desde el kiosco</h6>
 				<hr>
                 <a href="frame.php" class="btn btn-primary btn-sm"><i class="fa fa-crop"></i> Frame</a>
 			</div>
@@ -176,7 +177,7 @@ $funcion_user = $datos['Funcion'];
 	<footer class="footer">
       <div class="container">
         <div class="text-center">
-          Instituto Distrital de Turismo — Alcaldía Mayor de Bogotá D.C.
+          © Instituto Distrital de Turismo
         </div>
       </div>
     </footer>

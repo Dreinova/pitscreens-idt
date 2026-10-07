@@ -10,6 +10,7 @@ session_start([
 /*  verificacion login  */
 if(!isset($_SESSION['logeado'])):
 	header('Location: index.php');
+	exit();
 endif;
 
 /* datos de usuario */
@@ -95,6 +96,17 @@ $consulta_categoria = mysqli_query($conexion, $sql_categoria);
      </div>
     <!-- Fin Migas de pan-->
 		
+	<div class="row">
+		<div class="col-lg-12">
+			<div class="alert alert-warning" role="alert">
+				<strong>Esta función no está conectada al kiosco actualmente.</strong>
+				Desde el rediseño del protector de pantalla, tocar una pantalla reproduce
+				directamente el contenido de <a href="modulos.php">Pantallas</a> — no existe
+				ningún camino para llegar a esta URL desde el kiosco. Cambiar la URL aquí
+				no tendrá ningún efecto visible hasta que se reconecte esta función.
+			</div>
+		</div>
+	</div>
 	<!-- Inicio Secciones -->
 
 <div class="row">
@@ -130,7 +142,7 @@ $consulta_categoria = mysqli_query($conexion, $sql_categoria);
 	<footer class="footer">
       <div class="container">
         <div class="text-center">
-          Instituto Distrital de Turismo — Alcaldía Mayor de Bogotá D.C.
+          © Instituto Distrital de Turismo
         </div>
       </div>
     </footer>

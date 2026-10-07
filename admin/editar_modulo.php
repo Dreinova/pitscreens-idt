@@ -21,6 +21,7 @@ session_start([
 /*  verificacion login  */
 if(!isset($_SESSION['logeado'])):
 	header('Location: index.php');
+	exit();
 endif;
 
 /* datos de usuario */
@@ -415,6 +416,9 @@ if (!$config_pantalla) {
 
 				<div class="row">
 				<?php
+					if (!is_array($contenido_pantalla) && mysqli_num_rows($contenido_pantalla) === 0) {
+						echo '<div class="col-12 text-muted">Esta pantalla todavía no tiene contenido propio.</div>';
+					}
 					if (!is_array($contenido_pantalla)) {
 						while($res = mysqli_fetch_array($contenido_pantalla)){
 							$ID_item = $res['ID'];
@@ -431,10 +435,14 @@ if (!$config_pantalla) {
 							} else {
 								echo '<video width="100%" controls><source src="assets/galeria/'.$url_item.'" type="video/mp4"></video>';
 							}
-							echo '<strong>Nombre: </strong>'.$url_item.'<br>';
+							echo '<strong>Nombre: </strong>'.htmlspecialchars($url_item).'<br>';
 							echo '<strong>Estado: </strong>'.$estado_item.'<br>';
 							echo '<strong>Orden: </strong>'.$orden_item.'<br><br>';
-							echo '<a href="assets/php/eliminar_img.php?id='.$ID_item.'&user='.$name_user.'" title="Eliminar" onclick="javascript:return asegurar();"><i class="fa fa-trash"></i> Eliminar</a>';
+							echo '<a href="assets/php/eliminar_img.php?id='.$ID_item.'&user='.urlencode($name_user).'"'
+							   . ' class="btn btn-sm btn-outline-danger js-confirm-delete" title="Eliminar"'
+							   . ' data-title="¿Eliminar este contenido?"'
+							   . ' data-body="Esta acción eliminará &quot;'.htmlspecialchars($url_item).'&quot; de esta pantalla. Esta acción no se puede deshacer.">'
+							   . '<i class="fa fa-trash"></i> Eliminar</a>';
 							echo '</div>';
 						}
 					}
@@ -508,7 +516,7 @@ if (!$config_pantalla) {
 	<footer class="footer">
       <div class="container">
         <div class="text-center">
-           Instituto Distrital de Turismo — Alcaldía Mayor de Bogotá D.C.
+           © Instituto Distrital de Turismo
         </div>
       </div>
     </footer>
@@ -516,6 +524,7 @@ if (!$config_pantalla) {
 
   </div><!--End wrapper-->
 
+  <?php include 'assets/php/confirm_delete_modal.php'; ?>
 
   <!-- Bootstrap core JavaScript-->
   <script src="assets/js/jquery.min.js"></script>
@@ -529,6 +538,8 @@ if (!$config_pantalla) {
 
   <!-- Custom scripts -->
   <script src="assets/js/app-script.js"></script>
+  <!-- Confirmación de eliminación -->
+  <script src="assets/js/confirm-delete.js"></script>
 
   <!--Lightbox-->
   <script src="assets/plugins/fancybox/js/jquery.fancybox.min.js"></script>
@@ -579,9 +590,6 @@ if (!$config_pantalla) {
 	    }
 	}
 
-	function asegurar(){
-		return confirm("¿Está seguro de eliminar este medio?");
-	}
   </script>
 
 </body>

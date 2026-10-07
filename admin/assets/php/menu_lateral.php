@@ -78,7 +78,7 @@ function idt_avatar($foto, $correo, $class = '', $variant = 'circle') {
 		  
 	  <li>
         <a href="frame.php" class="waves-effect">
-          <i class="fa fa-crop"></i><span>Frame</span>
+          <i class="fa fa-crop"></i><span>Frame <span class="badge badge-warning" title="No tiene ningún punto de entrada desde el kiosco actualmente">No conectado</span></span>
         </a>
       </li>
 

@@ -2,26 +2,13 @@
 /**
  * programacion.php — Módulo Administrador
  *
- * Gestión de listas de reproducción / programaciones del sistema.
- * Permite crear programaciones con nombre y fecha/hora de inicio.
- * El sistema activa automáticamente la lista cuya Fecha-Inicio sea la
- * más reciente menor o igual a la hora actual (lógica en index.php y activacion.php).
+ * Listado de programaciones (tabla `lista-reproduccion`): define CUÁNDO
+ * se activa un conjunto de contenido y si aplica a una pantalla específica
+ * o a todas (general). La creación vive en nueva_programacion.php y la
+ * edición en editar_programacion.php — esta página solo lista.
  *
- * Funcionalidades:
- *   - Crear nueva programación con nombre y fecha/hora de activación.
- *   - Listar todas las programaciones con su estado actual.
- *   - Editar programaciones existentes (editar_programacion.php).
- *   - Eliminar programaciones (eliminar_programacion.php).
- *
- * Tabla `lista-reproduccion`:
- *   Nombre            — Nombre descriptivo de la programación
- *   Fecha-Inicio      — Fecha y hora en que debe activarse automáticamente
- *   Estado            — 1 (Activo) / 0 (Inactivo) — gestionado por el sistema
- *   Fecha-Modificacion — Fecha de la última modificación manual
- *   Usuario           — Administrador que creó o editó la programación
- *
- * Nota: El campo "Estado" lo gestiona automáticamente el sistema en index.php
- * y activacion.php; no debe editarse manualmente en condiciones normales.
+ * El campo "Estado" lo gestiona automáticamente el sistema en app/index.php
+ * y app/activacion.php; no se edita manualmente en condiciones normales.
  */
 
 date_default_timezone_set('America/Bogota');
@@ -34,9 +21,10 @@ session_start([
 ]);
 
 /* Proteger la página: redirigir al login si no hay sesión activa */
-if(!isset($_SESSION['logeado'])):
+if(!isset($_SESSION['logeado'])){
 	header('Location: index.php');
-endif;
+	exit();
+}
 
 /* --- Obtener datos del usuario autenticado --- */
 $id     = $_SESSION['id_Correo'];
@@ -53,41 +41,10 @@ $foto_user    = $datos['Foto_Usuario'];
 $funcion_user = $datos['Funcion'];
 
 /* --- Consultar todas las programaciones para mostrar en la tabla --- */
-$consulta_programacion = mysqli_query($conexion, "SELECT * FROM `lista-reproduccion`");
+$consulta_programacion = mysqli_query($conexion, "SELECT * FROM `lista-reproduccion` ORDER BY `Fecha-Inicio` DESC");
+$total_programaciones   = mysqli_num_rows($consulta_programacion);
 
-/* --- Módulos registrados, para el selector "General / módulo específico" --- */
-$consulta_modulos_sel = mysqli_query($conexion, "SELECT * FROM `modulos`");
-
-/* --- Procesamiento del formulario para crear nueva programación --- */
-if(isset($_POST['enviar'])){
-
-	$Nombre = $_REQUEST["Nombre"];
-	$Modulo = trim($_REQUEST["Modulo"]); // vacío = general (todos los módulos)
-
-	// El campo datetime-local ya trae fecha y hora juntas ("2020-06-01T12:00");
-	// solo hace falta cambiar la "T" por un espacio para el formato DATETIME de MySQL.
-	$fecha_inicio = str_replace('T', ' ', $_REQUEST["Fecha"]);
-
-	// Nace inactiva: el sistema la activa sola cuando corresponda según la
-	// fecha (ver app/index.php) — no se pide en el formulario.
-	$Estado = 0;
-	$hoy    = date("Y-m-d H:i:s"); // Fecha actual como marca de modificación
-
-	// Insertar la nueva programación en la base de datos
-	$sql_programacion = "INSERT INTO `lista-reproduccion`
-                         (Nombre, `Modulo`, `Fecha-Inicio`, Estado, `Fecha-Modificacion`, Usuario)
-                         VALUES ('$Nombre', " . ($Modulo === '' ? 'NULL' : "'$Modulo'") . ", '$fecha_inicio', '$Estado', '$hoy', '$name_user')";
-
-	$nueva_programacion = mysqli_query($conexion, $sql_programacion);
-
-	if ($nueva_programacion){
-		header("Location: programacion.php");
-	}
-	else{
-		$errores = "<p>No se ha guardado correctamente la programación.</p>";
-	}
-}
-
+mysqli_close($conexion);
 ?>
 
 <!DOCTYPE html>
@@ -98,11 +55,9 @@ if(isset($_POST['enviar'])){
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
   <meta name="description" content=""/>
   <meta name="author" content=""/>
-  <title>Edición de Inicio - IDT App</title>
+  <title>Programación - IDT App</title>
   <!--favicon-->
   <link rel="icon" href="assets/images/Favicon.png" type="image/x-icon">
-  <!-- jquery steps CSS-->
-  <link rel="stylesheet" type="text/css" href="assets/plugins/jquery.steps/css/jquery.steps.css">
   <!-- simplebar CSS-->
   <link href="assets/plugins/simplebar/css/simplebar.css" rel="stylesheet"/>
   <!-- Bootstrap core CSS-->
@@ -116,7 +71,6 @@ if(isset($_POST['enviar'])){
   <!-- Custom Style-->
   <link href="assets/css/app-style.css" rel="stylesheet"/>
 
-  
 </head>
 
 
@@ -142,83 +96,25 @@ if(isset($_POST['enviar'])){
 	 <?php include 'assets/php/menu_superior.php' ?>
 
 <div class="clearfix"></div>
-	
+
   <div class="content-wrapper">
     <div class="container-fluid">
-	
+
     <!--Inicio Migas de pan-->
      <div class="row pt-2 pb-2">
         <div class="col-sm-9">
-			<h4 class="page-title">Edición de Inicio de la App</h4>
+			<h4 class="page-title">Programación</h4>
+			<p class="text-muted mb-0">Define cuándo se activa un conjunto de contenido (fecha/hora) y si aplica a todas las pantallas o a una en particular. Para el contenido del día a día de una pantalla puntual, usa directamente <a href="modulos.php">Pantallas</a> → Editar.</p>
+	   </div>
+	   <div class="col-sm-3 text-right">
+		   <a href="nueva_programacion.php" class="btn btn-primary"><i class="fa fa-plus"></i> Nueva programación</a>
 	   </div>
      </div>
     <!-- Fin Migas de pan-->
-		
-	<!-- Inicio Secciones -->
-		
-	<div class="row">
-		<div class="col-lg-12">
-        	<div class="card">
-			<div class="card-header"><i class="fa fa-edit"></i>Nueva Programación</div>
-            	<div class="card-body">
-					<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST" enctype="multipart/form-data">
-						
-						<div class="row">
-							
-							<div class="col-12 col-lg-6 col-xl-6">
-								<div class="form-group row">
-									<label class="col-lg-12 col-form-label form-control-label">Nombre del la programación</label>
-									<div class="col-lg-12">
-										<input class="form-control" type="text" maxlength="50" name="Nombre" value="" placeholder="Ingrese el nombre de la programación" required>
-									</div>
-								</div>
-							</div>
-							
-							<div class="col-12 col-lg-6 col-xl-6">
-								<div class="form-group row">
-									<label class="col-lg-12 col-form-label form-control-label">Fecha de programación</label>
-									<div class="col-lg-10">
-										<input type="datetime-local" name="Fecha" class="form-control" value="2020-06-01T12:00">
-									</div>
-								</div>
-							</div>
 
-							<div class="col-12 col-lg-6 col-xl-6">
-								<div class="form-group row">
-									<label class="col-lg-12 col-form-label form-control-label">Alcance</label>
-									<div class="col-lg-10">
-										<select class="form-control" name="Modulo">
-											<option value="">General (todas las pantallas)</option>
-											<?php foreach ($consulta_modulos_sel as $mod_sel){ ?>
-											<option value="<?php echo htmlspecialchars($mod_sel['nombre_modulo']); ?>"><?php echo htmlspecialchars($mod_sel['nombre_modulo']); ?></option>
-											<?php } ?>
-										</select>
-										<small class="text-muted">Si eliges una pantalla específica, esta programación solo se mostrará ahí — las demás pantallas siguen con el contenido general mientras no tengan la suya propia.</small>
-									</div>
-								</div>
-							</div>
-
-						</div>
-                       
-                        <?php 
-							if(!empty($errores)){
-								echo $errores;
-							}
-						?>
-						<div class="form-footer">
-							<input type="submit" class="btn btn-success" name="enviar" value="Guardar">
-						</div>
-						
-                    </form>
-			  	</div>
-			</div>
-		</div>
-	</div>
-		
 	<div class="row">
 		 <div class="col-lg-12">
           <div class="card">
-            <div class="card-header"><i class="fa fa-edit"></i> Configuración Actual</div>
             <div class="card-body">
               <div class="table-responsive">
               <table class="table">
@@ -230,14 +126,17 @@ if(isset($_POST['enviar'])){
                       <th scope="col">Estado</th>
 					  <th scope="col">Fecha de Modificación</th>
 					  <th scope="col">Usuario que modifico</th>
-					  <th scope="col">Edición</th>
+					  <th scope="col" class="text-center">Acciones</th>
                     </tr>
                   </thead>
-				  
+
 				   <tbody>
-				<?php
-					foreach ($consulta_programacion as $row){
-						$nombre_prog = $row['Nombre'];
+				<?php if ($total_programaciones === 0): ?>
+				  <tr>
+					<td colspan="7" class="text-center text-muted">No hay programaciones registradas todavía.</td>
+				  </tr>
+				<?php else: foreach ($consulta_programacion as $row){
+						$nombre_prog = htmlspecialchars($row['Nombre']);
 						$fecha_inicio = $row['Fecha-Inicio'];
 						$fecha_inicio = date_format (new DateTime($fecha_inicio), 'd-m-Y h:i A');
 						$estado = $row['Estado'];
@@ -249,8 +148,9 @@ if(isset($_POST['enviar'])){
 							}
 						$ultima_mod = $row['Fecha-Modificacion'];
 						$ultima_mod2 = date_format (new DateTime($ultima_mod), 'd-m-Y h:i A');
-						$user = $row['Usuario'];
-						$modulo_prog = !empty($row['Modulo']) ? $row['Modulo'] : '<span class="badge badge-primary">General</span>';
+						$user = htmlspecialchars($row['Usuario']);
+						$modulo_prog = !empty($row['Modulo']) ? htmlspecialchars($row['Modulo']) : '<span class="badge badge-primary">General</span>';
+						$id_fila = $row['ID'];
 				?>
                   <tr>
 					<td><?php echo $nombre_prog; ?></td>
@@ -259,80 +159,65 @@ if(isset($_POST['enviar'])){
 					<td><?php echo $estado; ?></td>
 					<td><?php echo $ultima_mod2; ?></td>
 					<td><?php echo $user; ?></td>
-
-                    <?php
-						$id = $row['ID'];
-						echo "<td><a href='editar_programacion.php?id=$id'><i class='fa fa-edit'></i></a>
-						<a href='assets/php/eliminar_programacion.php?id=$id' onclick='javascript:return asegurar();''><i class='fa fa-trash'></i></a>";
-						echo "</tr>"; 
-					?>
+					<td class="text-center">
+						<div class="btn-group btn-group-sm" role="group">
+							<a href="editar_programacion.php?id=<?php echo $id_fila; ?>" class="btn btn-outline-secondary" title="Editar">
+								<i class="fa fa-edit"></i>
+							</a>
+							<a href="assets/php/eliminar_programacion.php?id=<?php echo $id_fila; ?>"
+							   class="btn btn-outline-danger js-confirm-delete" title="Eliminar"
+							   data-title="¿Eliminar programación?"
+							   data-body="Esta acción eliminará la programación &quot;<?php echo $nombre_prog; ?>&quot; y el contenido que tenga asignado. Esta acción no se puede deshacer.">
+								<i class="fa fa-trash"></i>
+							</a>
+						</div>
+					</td>
                   </tr>
-                 <?php }?>
-					
-               
+                 <?php } endif; ?>
+
                 </table>
             </div>
             </div>
           </div>
         </div>
 	</div>
-		
-		
-	
-		
-		
-	<!-- Inicio Secciones -->
 
     </div>
     <!-- End container-fluid-->
 
    </div><!--End content-wrapper-->
-	 
+
    <!--Start Back To Top Button-->
     <a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
     <!--End Back To Top Button-->
-	
+
 	<!--Start footer-->
 	<footer class="footer">
       <div class="container">
         <div class="text-center">
-          Instituto Distrital de Turismo — Alcaldía Mayor de Bogotá D.C.
+          © Instituto Distrital de Turismo
         </div>
       </div>
     </footer>
 	<!--End footer-->
-	
+
   </div><!--End wrapper-->
-  
-  <script>
-  	function asegurar (){
-		  rc = confirm("¿Está seguro de eliminar la programación?");
-		  return rc;
-	  }
-  </script>
+
+  <?php include 'assets/php/confirm_delete_modal.php'; ?>
+
   <!-- Bootstrap core JavaScript-->
   <script src="assets/js/jquery.min.js"></script>
   <script src="assets/js/popper.min.js"></script>
   <script src="assets/js/bootstrap.min.js"></script>
-	
+
 
   <!-- sidebar-menu js -->
   <script src="assets/js/sidebar-menu.js"></script>
-  
+
   <!-- Custom scripts -->
   <script src="assets/js/app-script.js"></script>
-	
-	  <!--Data Tables js-->
-  <script src="assets/plugins/bootstrap-datatable/js/jquery.dataTables.min.js"></script>
-  <script src="assets/plugins/bootstrap-datatable/js/dataTables.bootstrap4.min.js"></script>
-  <script src="assets/plugins/bootstrap-datatable/js/dataTables.buttons.min.js"></script>
-  <script src="assets/plugins/bootstrap-datatable/js/buttons.bootstrap4.min.js"></script>
-  <script src="assets/plugins/bootstrap-datatable/js/jszip.min.js"></script>
-  <script src="assets/plugins/bootstrap-datatable/js/pdfmake.min.js"></script>
-  <script src="assets/plugins/bootstrap-datatable/js/vfs_fonts.js"></script>
-  <script src="assets/plugins/bootstrap-datatable/js/buttons.html5.min.js"></script>
-  <script src="assets/plugins/bootstrap-datatable/js/buttons.print.min.js"></script>
-  <script src="assets/plugins/bootstrap-datatable/js/buttons.colVis.min.js"></script>
+  <!-- Confirmación de eliminación -->
+  <script src="assets/js/confirm-delete.js"></script>
 
 </body>
 </html>

@@ -10,6 +10,7 @@ session_start([
 /*  verificacion login  */
 if(!isset($_SESSION['logeado'])):
 	header('Location: index.php');
+	exit();
 endif;
 
 /* datos de usuario Logeado */
@@ -189,7 +190,7 @@ $consulta_eventos = mysqli_query($conexion, "SELECT * FROM `eventos_pantalla` OR
 	<footer class="footer">
       <div class="container">
         <div class="text-center">
-          Instituto Distrital de Turismo — Alcaldía Mayor de Bogotá D.C.
+          © Instituto Distrital de Turismo
         </div>
       </div>
     </footer>

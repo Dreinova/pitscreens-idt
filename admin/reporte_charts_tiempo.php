@@ -12,6 +12,7 @@ setlocale(LC_TIME, 'es_co');
 /*  verificacion login  */
 if(!isset($_SESSION['logeado'])):
 	header('Location: index.php');
+	exit();
 endif;
 
 /* datos de usuario Logeado */
@@ -428,7 +429,7 @@ var data2 = {
 							
 							"rgb(250, 250, 250, 0)"
 						],
-						data: [<?php echo $numero0; ?>,<?php echo $numero1; ?>, <?php echo $numero2; ?>,<?php echo $numero2; ?>,<?php echo $numero2; ?>,<?php echo $numero2; ?>,<?php echo $numero2; ?>, 0, 0],
+						data: [<?php echo $numero0; ?>,<?php echo $numero1; ?>, <?php echo $numero2; ?>,<?php echo $numero3; ?>,<?php echo $numero4; ?>,<?php echo $numero5; ?>,<?php echo $numero6; ?>, 0, 0],
 						borderWidth: [0, 0, 0, 0, 0, 0]
 					}]
     };
@@ -495,7 +496,7 @@ var dataURL = ctx2.toDataURL('image/png');
 	<footer class="footer">
       <div class="container">
         <div class="text-center">
-          Instituto Distrital de Turismo — Alcaldía Mayor de Bogotá D.C.
+          © Instituto Distrital de Turismo
         </div>
       </div>
     </footer>

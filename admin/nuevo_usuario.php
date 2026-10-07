@@ -1,4 +1,11 @@
 <?php
+/**
+ * nuevo_usuario.php — Módulo Administrador
+ *
+ * Creación de un usuario nuevo del panel. Formulario separado del
+ * listado (usuarios.php).
+ */
+
 include 'assets/php/Conexion_DB.php';
 
 session_start([
@@ -6,13 +13,10 @@ session_start([
     'gc_maxlifetime' => 7200,
 ]);
 
-/*  verificacion login  */
-if(!isset($_SESSION['logeado'])):
+if(!isset($_SESSION['logeado'])){
 	header('Location: index.php');
 	exit();
-endif;
-
-/* datos de usuario */
+}
 
 $id = $_SESSION['id_Correo'];
 $sql = "SELECT usuarios.ID, usuarios.Nombre, usuarios.Correo, usuarios.Foto_Usuario, funciones_usuario.Funcion FROM usuarios INNER JOIN funciones_usuario ON usuarios.Funcion = funciones_usuario.ID WHERE usuarios.ID = '$id' ";
@@ -24,66 +28,48 @@ $mail_user = $datos['Correo'];
 $foto_user = $datos['Foto_Usuario'];
 $funcion_user = $datos['Funcion'];
 
-/* datos tabla de usuarios */
+/* Nuevo perfil de Usuario */
 
-$edit_id = $_GET['id'];
+if (isset($_POST['nuevo_user'])) {
 
-$consulta_users = "SELECT usuarios.ID, usuarios.Nombre, usuarios.Correo, usuarios.Foto_Usuario, funciones_usuario.Funcion FROM usuarios INNER JOIN funciones_usuario ON usuarios.Funcion = funciones_usuario.ID WHERE usuarios.ID = '$edit_id'";
-$fila = mysqli_query($conexion, $consulta_users);
-$columnas = mysqli_fetch_array($fila);
+    if(is_uploaded_file($_FILES['foto_usuario']['tmp_name'])) {
 
-
-/* Editar perfil de Usuario */
-
-if (isset($_POST['edit_user'])) { 
-
-    if(is_uploaded_file($_FILES['foto_usuario']['tmp_name'])) { 
-     
-      // creamos las variables para subir a la db
-        $ruta = "assets/img_users/"; 
-        $nombrefinal= trim ($_FILES['foto_usuario']['name']); //Eliminamos los espacios en blanco
+        $ruta = "assets/img_users/";
+        $nombrefinal= trim ($_FILES['foto_usuario']['name']);
 		$nombrefinal= preg_replace('[\s+]', ' ', $nombrefinal);
-        
+
         $upload= $ruta . $nombrefinal;
 
-        if(move_uploaded_file($_FILES['foto_usuario']['tmp_name'], $upload)) { //movemos el archivo a su ubicacion 
-					
-            $id_usuario  = $_POST["id_usuario"];
-			$Nombre  = $_POST["Nombre"]; 
+        if(move_uploaded_file($_FILES['foto_usuario']['tmp_name'], $upload)) {
+            $Nombre  = $_POST["Nombre"];
             $Correo  = $_POST["Correo"];
 			$funcion  = $_POST["funcion"];
 			$Contrasena  = $_POST["Contrasena"];
 			$Contrasena = md5($Contrasena);
-			
-			$nuevo_user = mysqli_query($conexion, "UPDATE usuarios SET Nombre= '$Nombre', Correo= '$Correo', foto_user= '$upload', Contrasena= '$Contrasena' WHERE ID = '$id_usuario' ");
-			
-			$nuevo_user = mysqli_query($conexion, "UPDATE usuarios SET Nombre = '$Nombre', Correo = '$Correo', Foto_Usuario = '$upload', Funcion = '$funcion', Password = '$Contrasena' WHERE ID =$id_usuario");  
-			
-			if($nuevo_user){
-				header("Location: usuarios.php");
-			}else{
-				echo 'bien 1';
-			}
-			
-        }  	
-    } 
+
+			$nuevo_user = "INSERT INTO `usuarios` (Nombre, Correo, Foto_Usuario, Funcion, Password) VALUES ('$Nombre', '$Correo', '$upload', '$funcion', '$Contrasena')";
+
+			mysqli_query($conexion, $nuevo_user);
+
+			header("Location: usuarios.php");
+			exit();
+        }
+    }
 	else{
-		$id_usuario  = $_POST["id_usuario"];
-		$Nombre  = $_POST["Nombre"]; 
+		$Nombre  = $_POST["Nombre"];
 		$Correo  = $_POST["Correo"];
 		$funcion  = $_POST["funcion"];
 		$Contrasena  = $_POST["Contrasena"];
 		$Contrasena = md5($Contrasena);
 
-		$nuevo_user = mysqli_query($conexion, "UPDATE usuarios SET Nombre = '$Nombre', Correo = '$Correo', Funcion = '$funcion', Password = '$Contrasena' WHERE ID =$id_usuario");  
+		$nuevo_user = "INSERT INTO `usuarios` (Nombre, Correo, Funcion, Password) VALUES ('$Nombre', '$Correo', '$funcion', '$Contrasena')";
 
-		if($nuevo_user){
-				header("Location: usuarios.php");
-			}else{
-				echo 'paila 2';
-			}
+		mysqli_query($conexion, $nuevo_user);
+
+		header("Location: usuarios.php");
+		exit();
 	}
- } 
+}
 
 mysqli_close($conexion);
 ?>
@@ -96,7 +82,7 @@ mysqli_close($conexion);
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
   <meta name="description" content=""/>
   <meta name="author" content=""/>
-  <title>Edición de Usuario - IDT App</title>
+  <title>Nuevo Usuario - IDT App</title>
   <!--favicon-->
   <link rel="icon" href="assets/images/Favicon.png" type="image/x-icon">
   <!-- simplebar CSS-->
@@ -111,7 +97,7 @@ mysqli_close($conexion);
   <link href="assets/css/sidebar-menu.css" rel="stylesheet"/>
   <!-- Custom Style-->
   <link href="assets/css/app-style.css" rel="stylesheet"/>
-  
+
 </head>
 
 <body class="bg-theme bg-theme2">
@@ -130,91 +116,72 @@ mysqli_close($conexion);
 	 <?php include 'assets/php/menu_superior.php' ?>
 
 <div class="clearfix"></div>
-	
+
   <div class="content-wrapper">
     <div class="container-fluid">
-		
+
 	<div class="row pt-2 pb-2">
         <div class="col-sm-9">
-			<h4 class="page-title">Editar usuario Usuario</h4>
+			<h4 class="page-title">Nuevo usuario</h4>
 	   </div>
      </div>
-		
+
 	<div class="row">
 		<div class="col-lg-12">
         	<div class="card">
             	<div class="card-body">
 					<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST" enctype="multipart/form-data" >
-						<input class="form-control" type="hidden" name="id_usuario" value="<?php echo $edit_id; ?>">
-						<?php
-						foreach ($fila as $edit_user){ 
-						?>
                         <div class="form-group row">
                             <label class="col-lg-3 col-form-label form-control-label">Nombre</label>
                             <div class="col-lg-9">
-                                <input class="form-control" type="text" maxlength="50" name="Nombre" value="<?php echo $edit_user['Nombre'] ?>" required>
+                                <input class="form-control" type="text" maxlength="50" name="Nombre" value="" required>
                             </div>
                         </div>
 
                         <div class="form-group row">
                             <label class="col-lg-3 col-form-label form-control-label">Correo</label>
                             <div class="col-lg-9">
-                                <input class="form-control" type="email" name="Correo" value="<?php echo $edit_user['Correo'] ?>" required>
+                                <input class="form-control" type="email" name="Correo" value="" required>
                             </div>
                         </div>
-						
+
                         <div class="form-group row">
                             <label class="col-lg-3 col-form-label form-control-label">Foto de perfil</label>
                             <div class="col-lg-9">
-                                <input class="form-control" type="file" name="foto_usuario" size="150" maxlength="150" accept="image/*" >
+                                <input class="form-control" type="file" name="foto_usuario" size="150" maxlength="150" accept="image/*">
                             </div>
                         </div>
-						
+
 						<div class="form-group row">
 							<label for="basic-select" class="col-sm-3 col-form-label">Función</label>
 							<div class="col-sm-9">
 								<select class="form-control" id="default-select" name="funcion" required>
-									<?php 
-									if($edit_user['Funcion'] == 'Administrador'){
-										echo '
-											<option value="1" selected>Administrador</option>
-							 				<option value="2">Colaborador</option>
-										';
-									}
-									if($edit_user['Funcion'] == 'Colaborador'){
-										echo '
-											<option value="1">Administrador</option>
-							 				<option value="2" selected>Colaborador</option>
-										';
-									}
-									?>
+									<option value="" selected="" disabled="" hidden="">Seleccione una opción</option>
+									<option value="1">Administrador</option>
+							 		<option value="2">Colaborador</option>
 								</select>
 							</div>
 						</div>
-						
+
                         <div class="form-group row">
                             <label class="col-lg-3 col-form-label form-control-label">Contraseña</label>
                             <div class="col-lg-9">
                                 <input class="form-control" name="Contrasena" type="password" required>
                             </div>
                         </div>
-						
+
                         <div class="form-group row">
                             <label class="col-lg-3 col-form-label form-control-label"></label>
                             <div class="col-lg-9">
-								<a href="usuarios.php" class="btn btn-secondary">Cancelar</a>
-                                <input type="submit" name="edit_user" class="btn btn-primary" value="Editar Usuario">
+                                <a href="usuarios.php" class="btn btn-secondary">Cancelar</a>
+                                <input type="submit" name="nuevo_user" class="btn btn-primary" value="Crear usuario">
                             </div>
                         </div>
-						<?php
-						}
-						?>
                     </form>
 			  	</div>
 			</div>
 		</div>
 	</div>
-		
 
     </div>
     <!-- End container-fluid-->
@@ -222,7 +189,7 @@ mysqli_close($conexion);
    <!--Start Back To Top Button-->
     <a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
     <!--End Back To Top Button-->
-	
+
 	<!--Start footer-->
 	<footer class="footer">
       <div class="container">
@@ -232,7 +199,7 @@ mysqli_close($conexion);
       </div>
     </footer>
 	<!--End footer-->
-   
+
   </div><!--End wrapper-->
 
 
@@ -240,14 +207,14 @@ mysqli_close($conexion);
   <script src="assets/js/jquery.min.js"></script>
   <script src="assets/js/popper.min.js"></script>
   <script src="assets/js/bootstrap.min.js"></script>
-	
+
   <!-- simplebar js -->
   <script src="assets/plugins/simplebar/js/simplebar.js"></script>
   <!-- sidebar-menu js -->
   <script src="assets/js/sidebar-menu.js"></script>
-  
+
   <!-- Custom scripts -->
   <script src="assets/js/app-script.js"></script>
-	
+
 </body>
 </html>

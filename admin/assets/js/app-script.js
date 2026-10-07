@@ -70,6 +70,15 @@ $(function () {
 })
 
 
+// Evita doble envío de formularios (doble clic en "Guardar"/"Crear" que
+// dispararía dos altas/ediciones). Solo corre cuando el navegador ya
+// decidió enviar el formulario (los onclick de validación que retornan
+// false siguen cancelando el submit antes de llegar aquí).
+$(document).on('submit', 'form', function () {
+	$(this).find('button[type="submit"], input[type="submit"]').prop('disabled', true);
+});
+
+
 $(function () {
   $('[data-toggle="tooltip"]').tooltip()
 })

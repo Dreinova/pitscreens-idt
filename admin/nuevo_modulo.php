@@ -1,11 +1,13 @@
 <?php
 /**
- * usuarios.php — Módulo Administrador
+ * nuevo_modulo.php — Módulo Administrador
  *
- * Listado de usuarios del panel. La creación vive en nuevo_usuario.php y
- * la edición en editar_usuario.php — esta página solo lista.
+ * Creación de una Pantalla nueva. Formulario separado del listado
+ * (modulos.php) — una vez creada, su contenido/protector se administran
+ * desde editar_modulo.php.
  */
 
+date_default_timezone_set('America/Bogota');
 include 'assets/php/Conexion_DB.php';
 
 session_start([
@@ -13,13 +15,10 @@ session_start([
     'gc_maxlifetime' => 7200,
 ]);
 
-/*  verificacion login  */
 if(!isset($_SESSION['logeado'])){
 	header('Location: index.php');
 	exit();
 }
-
-/* datos de usuario */
 
 $id = $_SESSION['id_Correo'];
 $sql = "SELECT usuarios.ID, usuarios.Nombre, usuarios.Correo, usuarios.Foto_Usuario, funciones_usuario.Funcion FROM usuarios INNER JOIN funciones_usuario ON usuarios.Funcion = funciones_usuario.ID WHERE usuarios.ID = '$id' ";
@@ -31,11 +30,23 @@ $mail_user = $datos['Correo'];
 $foto_user = $datos['Foto_Usuario'];
 $funcion_user = $datos['Funcion'];
 
-/* datos tabla de usuarios */
+if (isset($_POST['nuevo_modulo'])) {
 
-$consulta_users = "SELECT usuarios.ID, usuarios.Nombre, usuarios.Correo, usuarios.Foto_Usuario, funciones_usuario.Funcion FROM usuarios INNER JOIN funciones_usuario ON usuarios.Funcion = funciones_usuario.ID ORDER BY usuarios.ID ASC";
-$query = mysqli_query($conexion, $consulta_users);
-$total_usuarios = mysqli_num_rows($query);
+	$nombre_modulo = $_POST["modulo"];
+	$ubicacion = $_POST["ubicacion"];
+	$fecha = date("Y-m-d H:i");
+
+	$nuevo_user = "INSERT INTO `modulos` (`nombre_modulo`, `ubicacion`, `fecha_modificacion`, `Usuario`) VALUES ('$nombre_modulo', '$ubicacion', '$fecha', '$name_user')";
+	$guardar_modulo = mysqli_query($conexion, $nuevo_user);
+
+	if($guardar_modulo){
+		header("Location: modulos.php");
+		exit();
+	}
+	else{
+		$errores = "<p>No se ha guardado correctamente la pantalla.</p>";
+	}
+}
 
 mysqli_close($conexion);
 ?>
@@ -48,7 +59,7 @@ mysqli_close($conexion);
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
   <meta name="description" content=""/>
   <meta name="author" content=""/>
-  <title>Usuarios Registrados - IDT App</title>
+  <title>Nueva Pantalla - IDT App</title>
   <!--favicon-->
   <link rel="icon" href="assets/images/Favicon.png" type="image/x-icon">
   <!-- simplebar CSS-->
@@ -86,72 +97,46 @@ mysqli_close($conexion);
   <div class="content-wrapper">
     <div class="container-fluid">
 
-     <div class="row pt-2 pb-2">
+	<div class="row pt-2 pb-2">
         <div class="col-sm-9">
-			<h4 class="page-title">Usuarios</h4>
-	   </div>
-	   <div class="col-sm-3 text-right">
-		   <a href="nuevo_usuario.php" class="btn btn-primary"><i class="fa fa-plus"></i> Nuevo usuario</a>
+			<h4 class="page-title">Nueva pantalla</h4>
 	   </div>
      </div>
 
-      <div class="row">
+	<div class="row">
+		<div class="col-lg-12">
+        	<div class="card">
+        		<div class="card-header text-uppercase"><i class="fa fa-tv"></i> Datos de la pantalla</div>
+            	<div class="card-body">
+					<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST">
+                        <div class="form-group row">
+                            <label class="col-lg-3 col-form-label form-control-label">Nombre de la pantalla</label>
+                            <div class="col-lg-9">
+                                <input class="form-control" type="text" maxlength="50" name="modulo" value="" required>
+                            </div>
+                        </div>
 
-        <div class="col-lg-12">
-          <div class="card">
-            <div class="card-body">
-			  <div class="table-responsive">
-              <table class="table table-bordered">
-                <thead>
-                  <tr>
-                    <th scope="col">ID</th>
-                    <th scope="col">Nombre</th>
-                    <th scope="col">Correo</th>
-					<th scope="col">Función</th>
-                    <th scope="col" class="text-center">Acciones</th>
-                  </tr>
-                </thead>
+                        <div class="form-group row">
+                            <label class="col-lg-3 col-form-label form-control-label">Ubicación</label>
+                            <div class="col-lg-9">
+                                <input class="form-control" type="text" name="ubicacion" value="" required>
+                            </div>
+                        </div>
 
-                <tbody>
-				<?php if ($total_usuarios === 0): ?>
-				  <tr>
-					<td colspan="5" class="text-center text-muted">No hay usuarios registrados todavía.</td>
-				  </tr>
-				<?php else: foreach ($query as $row){
-						$id_fila = $row['ID'];
-						$nombre_fila = htmlspecialchars($row['Nombre']);
-				?>
-                  <tr>
-					<td><?php echo $id_fila; ?></td>
-                    <td><?php echo $nombre_fila; ?></td>
-					<td><?php echo htmlspecialchars($row['Correo']); ?></td>
-					<td><?php echo htmlspecialchars($row['Funcion']); ?></td>
-					<td class="text-center">
-						<div class="btn-group btn-group-sm" role="group">
-							<a href="editar_usuario.php?id=<?php echo $id_fila; ?>" class="btn btn-outline-secondary" title="Editar">
-								<i class="fa fa-edit"></i>
-							</a>
-							<?php if ($funcion_user == 'Administrador'): ?>
-							<a href="assets/php/eliminar_usuario.php?id=<?php echo $id_fila; ?>"
-							   class="btn btn-outline-danger js-confirm-delete" title="Eliminar"
-							   data-title="¿Eliminar usuario?"
-							   data-body="Esta acción eliminará al usuario &quot;<?php echo $nombre_fila; ?>&quot;. Esta acción no se puede deshacer.">
-								<i class="fa fa-trash"></i>
-							</a>
-							<?php endif; ?>
-						</div>
-					</td>
-                  </tr>
-                 <?php } endif; ?>
+						<?php if(!empty($errores)){ echo $errores; } ?>
 
-                </tbody>
-              </table>
-            </div>
-            </div>
-          </div>
-        </div>
-
-    </div>
+                        <div class="form-group row">
+                            <label class="col-lg-3 col-form-label form-control-label"></label>
+                            <div class="col-lg-9">
+                                <a href="modulos.php" class="btn btn-secondary">Cancelar</a>
+                                <input type="submit" name="nuevo_modulo" class="btn btn-primary" value="Crear pantalla">
+                            </div>
+                        </div>
+                    </form>
+			  	</div>
+			</div>
+		</div>
+	</div>
 
     </div>
     <!-- End container-fluid-->
@@ -172,7 +157,6 @@ mysqli_close($conexion);
 
   </div><!--End wrapper-->
 
-  <?php include 'assets/php/confirm_delete_modal.php'; ?>
 
   <!-- Bootstrap core JavaScript-->
   <script src="assets/js/jquery.min.js"></script>
@@ -186,8 +170,6 @@ mysqli_close($conexion);
 
   <!-- Custom scripts -->
   <script src="assets/js/app-script.js"></script>
-  <!-- Confirmación de eliminación -->
-  <script src="assets/js/confirm-delete.js"></script>
 
 </body>
 </html>
