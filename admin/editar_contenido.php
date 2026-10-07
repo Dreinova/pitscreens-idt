@@ -39,6 +39,7 @@ $url_img = $datos_img["URL"];
 $tipo = $datos_img["Tipo"];
 $estado = $datos_img["Estado"];
 $orden = $datos_img["Orden"];
+$lista_anterior = $datos_img["Lista-Reproduccion"];
 
 /* Actualizar imagen */
 
@@ -51,8 +52,15 @@ if(isset($_POST['Actualizar'])){
 	$fecha = $hoy = date("Y-m-d H:i:s");
 	
 	$actualizar_img = mysqli_query($conexion,"UPDATE `contenido` SET `Estado` = '$Estado', `Orden` = '$orden', `Lista-Reproduccion` = '$lista_reproduccion', `Usuario` = '$name_user' WHERE `ID` = $id_form");
-	
+
 		if ($actualizar_img){
+			// Marca como modificada tanto la lista nueva como la anterior (si
+			// cambió de lista), para que la sincronización en vivo del kiosco
+			// detecte el cambio sin importar a cuál lista quedó asignado.
+			mysqli_query($conexion, "UPDATE `lista-reproduccion` SET `Fecha-Modificacion` = '$fecha' WHERE `ID` = '$lista_reproduccion'");
+			if ($lista_anterior && $lista_anterior != $lista_reproduccion) {
+				mysqli_query($conexion, "UPDATE `lista-reproduccion` SET `Fecha-Modificacion` = '$fecha' WHERE `ID` = '$lista_anterior'");
+			}
 			echo "<p>Se han guardado los cambios correctamente.</p>";
 			header("Location: contenido.php");
 		}

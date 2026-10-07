@@ -38,14 +38,29 @@ session_start([
     'gc_maxlifetime'  => 31536000,
 ]);
 
+include '../admin/assets/php/Conexion_DB.php';
+
+/* URL estable por pantalla (aditivo): ?pantalla=<modulos.ID> selecciona esa
+   pantalla directamente, igual que si se hubiera elegido en log_index.php.
+   Si el ID no existe, se ignora por completo y el flujo normal (sesión
+   existente, o redirect a log_index.php) sigue intacto. */
+if(isset($_GET['pantalla'])){
+	$pantalla_id  = (int) $_GET['pantalla'];
+	$sql_pantalla = mysqli_query($conexion, "SELECT nombre_modulo FROM modulos WHERE ID = $pantalla_id");
+	$row_pantalla = $sql_pantalla ? mysqli_fetch_array($sql_pantalla) : null;
+	if ($row_pantalla) {
+		$_SESSION['log-modulo'] = true;
+		$_SESSION['modulo']     = $row_pantalla['nombre_modulo'];
+		$_SESSION['modulo_id']  = $pantalla_id;
+	}
+}
+
 // Verificar que el módulo haya sido seleccionado previamente
 if(!isset($_SESSION['log-modulo'])){
 	header('Location: log_index.php');
 }
 
 $modulo = $_SESSION['modulo'];
-
-include '../admin/assets/php/Conexion_DB.php';
 
 $ahora      = date("Y-m-d H:i:s");
 // Calcular un minuto adelante (reservado para lógica futura de anticipación)
@@ -68,6 +83,7 @@ $row_especifica  = mysqli_fetch_array($sql_especifica);
 if ($row_especifica) {
 	$ID_programacion   = $row_especifica['ID'];
 	$name_programacion = $row_especifica['Nombre'];
+	$fecha_mod_lista   = $row_especifica['Fecha-Modificacion'];
 }
 else {
 	/* --- Sin programación propia: cae al contenido general --- */
@@ -104,6 +120,7 @@ else {
 	$row_programacion  = mysqli_fetch_array($consulta_programacion);
 	$ID_programacion   = $row_programacion["ID"];
 	$name_programacion = $row_programacion["Nombre"];
+	$fecha_mod_lista   = $row_programacion["Fecha-Modificacion"];
 }
 
 // Obtener todos los elementos de contenido de la lista (específica o general)
@@ -112,11 +129,28 @@ $consultaContenido = mysqli_query($conexion,
 );
 $numero_filas = mysqli_num_rows($consultaContenido);
 
-/* --- Contenido de respaldo cuando no hay nada programado --- */
-$consulta_config = mysqli_query($conexion, "SELECT * FROM `configuracion` LIMIT 1");
-$row_config       = mysqli_fetch_array($consulta_config);
+/* --- Protector de pantalla: configuración específica de este módulo si
+       existe, si no la general --- */
+$sql_config_especifica = mysqli_query($conexion,
+    "SELECT * FROM `configuracion` WHERE `Modulo` = '$modulo_actual' LIMIT 1"
+);
+$row_config = mysqli_fetch_array($sql_config_especifica);
+
+if (!$row_config) {
+	$sql_config_general = mysqli_query($conexion,
+	    "SELECT * FROM `configuracion` WHERE `Modulo` IS NULL LIMIT 1"
+	);
+	$row_config = mysqli_fetch_array($sql_config_general);
+}
+
 $protector_url    = $row_config ? $row_config['Protector_URL']  : 'IDT.mp4';
 $protector_tipo   = $row_config ? $row_config['Protector_Tipo'] : 'video';
+$id_config        = $row_config ? $row_config['ID'] : null;
+$fecha_mod_config = $row_config ? $row_config['Fecha-Modificacion'] : null;
+
+/* --- Versión del contenido/configuración vigente, para que el polling de
+       abajo detecte cambios hechos desde el admin y recargue la pantalla. */
+$contenidoVersion = $ID_programacion . '-' . $fecha_mod_lista . '|' . $id_config . '-' . $fecha_mod_config;
 
 ?>
 
@@ -168,7 +202,7 @@ function lanzadera(){
 		</div>
 	</div>
 
-	<a href="assets/php/logout.php" class="kiosk-settings-btn" aria-label="Cambiar módulo" title="Cambiar módulo" onclick="event.stopPropagation(); return confirm('¿Cambiar el módulo asignado a este punto?');">&#9881;</a>
+	<a href="assets/php/logout.php" class="kiosk-settings-btn" aria-label="Cambiar pantalla" title="Cambiar pantalla" onclick="event.stopPropagation(); return confirm('¿Cambiar la pantalla asignada a este punto?');">&#9881;</a>
 
 	<div id="contenedor_carga">
 		<div id="carga"></div>
@@ -187,7 +221,16 @@ function lanzadera(){
 
 $(document).ready(function() {
       var refreshId =  setInterval( function(){
-    $('#tiempo').load('tiempo.php');//actualizas el div
+    $('#tiempo').load('tiempo.php', function(responseText){
+		// tiempo.php responde "ahora|idLista-fechaLista|idConfig-fechaConfig"
+		// — si la parte de versión cambió respecto a la que se cargó con
+		// esta página, el admin editó algo: recargar de verdad.
+		var partes = String(responseText).split('|');
+		var versionServidor = partes.slice(1).join('|');
+		if (versionServidor && versionServidor !== contenidoVersion) {
+			location.reload();
+		}
+	});//actualizas el div
    }, 1000 );
 });
 
@@ -224,6 +267,10 @@ var protectorAsset = {
 	mediaType: "<?php echo $protector_tipo; ?>"
 };
 
+// Versión con la que se cargó esta página — el polling de arriba la compara
+// contra la versión que reporte el servidor en cada "tick".
+var contenidoVersion = "<?php echo $contenidoVersion; ?>";
+
 var previewContainer = $(".contenedor-medios");
 var overlayProtector  = document.getElementById('overlayProtector');
 var curIndex = 0;
@@ -258,6 +305,9 @@ function mostrarProtector() {
 function iniciarContenidoReal() {
 	if (contenidoAssets.length === 0) { return; }
 	overlayProtector.style.display = 'none';
+	// Métrica de uso: registrar el toque sin bloquear ni retrasar el
+	// arranque del contenido — si la petición falla o tarda, no importa.
+	$.post('registrar_evento.php', { evento: 'SCREEN_STARTED' });
 	curIndex = 0;
 	reproducirContenidoReal();
 }

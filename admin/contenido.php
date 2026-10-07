@@ -82,7 +82,12 @@ if(isset($_POST['enviar'])){
             "INSERT INTO contenido (URL, Tipo, Estado, Orden, `Lista-Reproduccion`, Fecha_Modificación, Usuario)
              VALUES ('$foto', '$tipo_existente', '$Estado', '$Orden', '$Lista_reporduccion', '$fecha', '$name_user')"
         );
-		if ($sub){ header("Location: contenido.php"); exit(); }
+		if ($sub){
+			// Marca la lista padre como modificada, para que el mecanismo de
+			// sincronización en vivo del kiosco (app/tiempo.php) detecte el cambio.
+			mysqli_query($conexion, "UPDATE `lista-reproduccion` SET `Fecha-Modificacion` = '$fecha' WHERE `ID` = '$Lista_reporduccion'");
+			header("Location: contenido.php"); exit();
+		}
 		else{ $errores = "<p>No se ha podido asignar el archivo seleccionado.</p>"; }
 	}
 	else {
@@ -102,7 +107,10 @@ if(isset($_POST['enviar'])){
                 "INSERT INTO contenido (URL, Tipo, Estado, Orden, `Lista-Reproduccion`, Fecha_Modificación, Usuario)
                  VALUES ('$foto', 'image', '$Estado', '$Orden', '$Lista_reporduccion', '$fecha', '$name_user')"
             );
-			if ($sub_img){ header("Location: contenido.php"); exit(); }
+			if ($sub_img){
+				mysqli_query($conexion, "UPDATE `lista-reproduccion` SET `Fecha-Modificacion` = '$fecha' WHERE `ID` = '$Lista_reporduccion'");
+				header("Location: contenido.php"); exit();
+			}
 			else{ $errores = "<p>No se ha subido correctamente la imagen.</p>"; }
 		}
 		elseif ($foto_type == 'video/mp4') {
@@ -110,7 +118,10 @@ if(isset($_POST['enviar'])){
                 "INSERT INTO contenido (URL, Tipo, Estado, Orden, `Lista-Reproduccion`, Fecha_Modificación, Usuario)
                  VALUES ('$foto', 'video', '$Estado', '$Orden', '$Lista_reporduccion', '$fecha', '$name_user')"
             );
-			if ($sub_video){ header("Location: contenido.php"); exit(); }
+			if ($sub_video){
+				mysqli_query($conexion, "UPDATE `lista-reproduccion` SET `Fecha-Modificacion` = '$fecha' WHERE `ID` = '$Lista_reporduccion'");
+				header("Location: contenido.php"); exit();
+			}
 			else{ $errores = "<p>No se ha subido correctamente el video MP4.</p>"; }
 		}
 	}

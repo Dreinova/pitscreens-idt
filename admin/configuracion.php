@@ -33,9 +33,11 @@ $mail_user = $datos['Correo'];
 $foto_user = $datos['Foto_Usuario'];
 $funcion_user = $datos['Funcion'];
 
-/* datos de configuración */
+/* datos de configuración general (de respaldo) — filtra explícitamente
+   por Modulo IS NULL para no mostrar por error el override de alguna
+   pantalla específica (ver admin/editar_modulo.php). */
 
-$sql_config = "SELECT * FROM `configuracion` LIMIT 1";
+$sql_config = "SELECT * FROM `configuracion` WHERE `Modulo` IS NULL LIMIT 1";
 $consulta_config = mysqli_query($conexion, $sql_config);
 
 ?>

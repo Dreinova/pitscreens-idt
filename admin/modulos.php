@@ -46,7 +46,7 @@ if (isset($_POST['nuevo_modulo'])) {
 			header("Location: modulos.php");
 		}
 		else{
-			$errores = "<p>No se ha guardado correctamente el módulo.</p>";
+			$errores = "<p>No se ha guardado correctamente la pantalla.</p>";
 		}
  } 
 
@@ -61,7 +61,7 @@ mysqli_close($conexion);
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
   <meta name="description" content=""/>
   <meta name="author" content=""/>
-  <title>Registro de Módulos - IDT App</title>
+  <title>Registro de Pantallas - IDT App</title>
   <!--favicon-->
   <link rel="icon" href="assets/images/Favicon.png" type="image/x-icon">
   <!-- simplebar CSS-->
@@ -101,7 +101,7 @@ mysqli_close($conexion);
 		
 	<div class="row pt-2 pb-2">
         <div class="col-sm-9">
-			<h4 class="page-title">Nuevo Módulo</h4>
+			<h4 class="page-title">Nueva Pantalla</h4>
 	   </div>
      </div>
 		
@@ -111,7 +111,7 @@ mysqli_close($conexion);
             	<div class="card-body">
 					<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST" enctype="multipart/form-data" >
                         <div class="form-group row">
-                            <label class="col-lg-3 col-form-label form-control-label">Nombre del módulo</label>
+                            <label class="col-lg-3 col-form-label form-control-label">Nombre de la pantalla</label>
                             <div class="col-lg-9">
                                 <input class="form-control" type="text" maxlength="50" name="modulo" value="" required>
                             </div>
@@ -128,7 +128,7 @@ mysqli_close($conexion);
                             <label class="col-lg-3 col-form-label form-control-label"></label>
                             <div class="col-lg-9">
                                 <input type="reset" class="btn btn-secondary" value="Cancelar">
-                                <input type="submit" name="nuevo_modulo" class="btn btn-primary" value="Nuevo módulo">
+                                <input type="submit" name="nuevo_modulo" class="btn btn-primary" value="Nueva pantalla">
                             </div>
                         </div>
 						
@@ -154,7 +154,7 @@ mysqli_close($conexion);
 		
      <div class="row pt-2 pb-2">
         <div class="col-sm-9">
-			<h4 class="page-title">Módulos Registrados</h4>
+			<h4 class="page-title">Pantallas Registradas</h4>
 	   </div>
      </div>
 

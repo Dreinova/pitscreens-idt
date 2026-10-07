@@ -35,7 +35,10 @@ $funcion_user = $datos['Funcion'];
 
 /* datos actuales de configuración */
 
-$consulta_config = mysqli_query($conexion, "SELECT * FROM `configuracion` LIMIT 1");
+// Esta página edita siempre la configuración GENERAL (la de respaldo para
+// pantallas sin protector propio) — filtra explícitamente por Modulo IS
+// NULL para no traer por error una fila específica de alguna pantalla.
+$consulta_config = mysqli_query($conexion, "SELECT * FROM `configuracion` WHERE `Modulo` IS NULL LIMIT 1");
 $datos_config = mysqli_fetch_array($consulta_config);
 $ID_config = $datos_config['ID'];
 $tiempo_kiosco_actual = $datos_config['Tiempo_Inactividad_Kiosco'];

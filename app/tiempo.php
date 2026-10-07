@@ -22,11 +22,13 @@
 
 error_reporting(0); // Suprimir errores para que no rompan el JSON/HTML del div
 date_default_timezone_set('America/Bogota');
+session_start(); // Necesario para leer $_SESSION['modulo'] (misma sesión que index.php)
 include '../admin/assets/php/Conexion_DB.php';
 
 $ahora = date("Y-m-d H:i:s"); // Hora actual del servidor
 
-/* Buscar programación cuya fecha de inicio coincida exactamente con ahora */
+/* Buscar programación cuya fecha de inicio coincida exactamente con ahora
+   (mecanismo heredado: mantiene Estado=1/0 sincronizado en la BD) */
 $sql_hora = mysqli_query($conexion,
     "SELECT `Fecha-Inicio` FROM `lista-reproduccion`
      WHERE `Fecha-Inicio` = NOW()
@@ -35,11 +37,71 @@ $sql_hora = mysqli_query($conexion,
 $rowProgramaciones = mysqli_fetch_array($sql_hora);
 $fecha_inicio      = $rowProgramaciones['Fecha-Inicio'];
 
-// Mostrar la hora actual en el div de tiempo (visible en pantalla de kiosco)
-echo $ahora;
-
-// Si la hora del servidor coincide con la programación, activar el cambio de playlist
 if($ahora == $fecha_inicio){
 	header("location:activacion.php");
 }
+
+/* --- Versión del contenido/configuración vigente para este módulo ---
+   Misma resolución específica→general que usa app/index.php, para poder
+   compararla en el cliente y forzar un location.reload() real cuando algo
+   cambió (edición de contenido, de protector, o paso del tiempo a una
+   nueva programación con Fecha-Inicio ya vigente). */
+$modulo_actual = isset($_SESSION['modulo']) ? mysqli_real_escape_string($conexion, $_SESSION['modulo']) : '';
+
+$id_lista = null;
+$fecha_lista = null;
+
+if ($modulo_actual !== '') {
+	$sql_especifica = mysqli_query($conexion,
+	    "SELECT `ID`, `Fecha-Modificacion` FROM `lista-reproduccion`
+	     WHERE `Modulo` = '$modulo_actual' AND `Fecha-Inicio` <= NOW()
+	     ORDER BY `Fecha-Inicio` DESC LIMIT 1"
+	);
+	$row_especifica = $sql_especifica ? mysqli_fetch_array($sql_especifica) : null;
+} else {
+	$row_especifica = null;
+}
+
+if ($row_especifica) {
+	$id_lista    = $row_especifica['ID'];
+	$fecha_lista = $row_especifica['Fecha-Modificacion'];
+} else {
+	$sql_general = mysqli_query($conexion,
+	    "SELECT `ID`, `Fecha-Modificacion` FROM `lista-reproduccion`
+	     WHERE (`Modulo` IS NULL OR `Modulo` = '') AND `Fecha-Inicio` <= NOW()
+	     ORDER BY `Fecha-Inicio` DESC LIMIT 1"
+	);
+	$row_general = mysqli_fetch_array($sql_general);
+	if ($row_general) {
+		$id_lista    = $row_general['ID'];
+		$fecha_lista = $row_general['Fecha-Modificacion'];
+	}
+}
+
+$id_config = null;
+$fecha_config = null;
+
+if ($modulo_actual !== '') {
+	$sql_config_esp = mysqli_query($conexion, "SELECT `ID`, `Fecha-Modificacion` FROM `configuracion` WHERE `Modulo` = '$modulo_actual' LIMIT 1");
+	$row_config_esp = $sql_config_esp ? mysqli_fetch_array($sql_config_esp) : null;
+} else {
+	$row_config_esp = null;
+}
+
+if ($row_config_esp) {
+	$id_config    = $row_config_esp['ID'];
+	$fecha_config = $row_config_esp['Fecha-Modificacion'];
+} else {
+	$sql_config_gen = mysqli_query($conexion, "SELECT `ID`, `Fecha-Modificacion` FROM `configuracion` WHERE `Modulo` IS NULL LIMIT 1");
+	$row_config_gen = mysqli_fetch_array($sql_config_gen);
+	if ($row_config_gen) {
+		$id_config    = $row_config_gen['ID'];
+		$fecha_config = $row_config_gen['Fecha-Modificacion'];
+	}
+}
+
+$version = $id_lista . '-' . $fecha_lista . '|' . $id_config . '-' . $fecha_config;
+
+// El div #tiempo es invisible (0x0, overflow hidden) — seguro embeber esto.
+echo $ahora . '|' . $version;
 ?>

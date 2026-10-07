@@ -41,8 +41,12 @@ echo "Información del host: " . mysqli_get_host_info($conexion) . PHP_EOL;
 
 /* --- Fin conexión a base de datos --- */
 
-// Sin etiqueta de cierre "?>" a propósito: es un archivo de solo inclusión,
-// y cualquier espacio/salto de línea después de "?>" se envía como salida
-// HTML real — eso rompía session_start()/header() en las páginas que lo
-// incluyen (el archivo de producción, generado aparte, tenía justo ese
-// problema: "headers already sent" en contenido.php/editar_frame.php).
+// Sin etiqueta de cierre PHP a propósito: es un archivo de solo inclusión,
+// y cualquier espacio/salto de línea después de esa etiqueta se envía como
+// salida HTML real — eso rompía session_start()/header() en las páginas
+// que lo incluyen (el archivo de producción, generado aparte, tenía justo
+// ese problema: "headers already sent" en contenido.php/editar_frame.php).
+// (Ojo: no escribir el cierre PHP literal dentro de este comentario — PHP
+// corta el modo PHP ahí mismo aunque esté en un comentario de una línea, y
+// el resto de este bloque se filtra como salida HTML cruda — exactamente
+// el bug que esta nota describe, detectado en app/tiempo.php en 2026-10-07.)

@@ -175,7 +175,7 @@ if(isset($_POST['enviar'])){
 									<label class="col-lg-12 col-form-label form-control-label">Alcance</label>
 									<div class="col-lg-10">
 										<select class="form-control" name="Modulo">
-											<option value="" <?php echo empty($Modulo_programacion) ? 'selected' : ''; ?>>General (todos los módulos)</option>
+											<option value="" <?php echo empty($Modulo_programacion) ? 'selected' : ''; ?>>General (todas las pantallas)</option>
 											<?php foreach ($consulta_modulos_sel as $mod_sel){ ?>
 											<option value="<?php echo htmlspecialchars($mod_sel['nombre_modulo']); ?>" <?php echo ($Modulo_programacion === $mod_sel['nombre_modulo']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($mod_sel['nombre_modulo']); ?></option>
 											<?php } ?>

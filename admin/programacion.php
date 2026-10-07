@@ -188,12 +188,12 @@ if(isset($_POST['enviar'])){
 									<label class="col-lg-12 col-form-label form-control-label">Alcance</label>
 									<div class="col-lg-10">
 										<select class="form-control" name="Modulo">
-											<option value="">General (todos los módulos)</option>
+											<option value="">General (todas las pantallas)</option>
 											<?php foreach ($consulta_modulos_sel as $mod_sel){ ?>
 											<option value="<?php echo htmlspecialchars($mod_sel['nombre_modulo']); ?>"><?php echo htmlspecialchars($mod_sel['nombre_modulo']); ?></option>
 											<?php } ?>
 										</select>
-										<small class="text-muted">Si eliges un módulo específico, esta programación solo se mostrará ahí — los demás módulos siguen con el contenido general mientras no tengan la suya propia.</small>
+										<small class="text-muted">Si eliges una pantalla específica, esta programación solo se mostrará ahí — las demás pantallas siguen con el contenido general mientras no tengan la suya propia.</small>
 									</div>
 								</div>
 							</div>
@@ -225,7 +225,7 @@ if(isset($_POST['enviar'])){
                   <thead>
                     <tr>
                       <th scope="col">Nombre de programación</th>
-					  <th scope="col">Módulo</th>
+					  <th scope="col">Pantalla</th>
 					  <th scope="col">Fecha de Programación</th>
                       <th scope="col">Estado</th>
 					  <th scope="col">Fecha de Modificación</th>

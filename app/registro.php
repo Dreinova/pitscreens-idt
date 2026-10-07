@@ -17,9 +17,15 @@ $modulo = $_SESSION['modulo'];
 
 include('../admin/assets/php/Conexion_DB.php');
 
-/* Tiempo de inactividad configurable desde el admin (Inactividad1.js) */
-$consulta_config = mysqli_query($conexion, "SELECT Tiempo_Inactividad_Kiosco FROM `configuracion` LIMIT 1");
+/* Tiempo de inactividad configurable desde el admin (Inactividad1.js) —
+   configuración específica de este módulo si existe, si no la general. */
+$modulo_esc = mysqli_real_escape_string($conexion, $modulo);
+$consulta_config = mysqli_query($conexion, "SELECT Tiempo_Inactividad_Kiosco FROM `configuracion` WHERE `Modulo` = '$modulo_esc' LIMIT 1");
 $row_config = mysqli_fetch_array($consulta_config);
+if (!$row_config) {
+	$consulta_config = mysqli_query($conexion, "SELECT Tiempo_Inactividad_Kiosco FROM `configuracion` WHERE `Modulo` IS NULL LIMIT 1");
+	$row_config = mysqli_fetch_array($consulta_config);
+}
 $tiempo_inactividad_ms = $row_config ? ((int) $row_config['Tiempo_Inactividad_Kiosco'] * 1000) : 60000;
 
 ?>

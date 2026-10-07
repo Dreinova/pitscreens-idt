@@ -60,7 +60,7 @@ function idt_avatar($foto, $correo, $class = '', $variant = 'circle') {
 		  
 	  <li>
         <a href="modulos.php" class="waves-effect">
-          <i class="fa fa-tv"></i><span>Módulos</span>
+          <i class="fa fa-tv"></i><span>Pantallas</span>
         </a>
       </li>
 		  
@@ -101,6 +101,9 @@ function idt_avatar($foto, $correo, $class = '', $variant = 'circle') {
 		  </li>
 		  <li>
 			  <a href="reporte_visitantes.php"><i class="zmdi zmdi-long-arrow-right"></i> Reporte de Visitantes</a>
+		  </li>
+		  <li>
+			  <a href="reporte_pantallas.php"><i class="zmdi zmdi-long-arrow-right"></i> Reporte de Pantallas</a>
 		  </li>
           <li>
             <a href="javaScript:void();"><i class="zmdi zmdi-long-arrow-right"></i> Estadisticas de Uso <i class="fa fa-angle-left pull-right"></i></a>

@@ -24,7 +24,17 @@ $mail_user = $datos['Correo'];
 $foto_user = $datos['Foto_Usuario'];
 $funcion_user = $datos['Funcion'];
 
-$consulta_programacion = mysqli_query($conexion,"SELECT * FROM `reco`");
+/* Resumen: total de inicios (SCREEN_STARTED) por pantalla */
+
+$consulta_resumen = mysqli_query($conexion,
+    "SELECT `Modulo`, COUNT(*) AS Total FROM `eventos_pantalla`
+     WHERE `Evento` = 'SCREEN_STARTED'
+     GROUP BY `Modulo` ORDER BY Total DESC"
+);
+
+/* Listado completo de eventos */
+
+$consulta_eventos = mysqli_query($conexion, "SELECT * FROM `eventos_pantalla` ORDER BY `Fecha_Hora` DESC");
 
 ?>
 
@@ -36,7 +46,7 @@ $consulta_programacion = mysqli_query($conexion,"SELECT * FROM `reco`");
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
   <meta name="description" content=""/>
   <meta name="author" content=""/>
-  <title>Reporte General - IDT App</title>
+  <title>Reporte de Pantallas - IDT App</title>
   <!--favicon-->
   <link rel="icon" href="assets/images/Favicon.png" type="image/x-icon">
   <!-- simplebar CSS-->
@@ -54,7 +64,7 @@ $consulta_programacion = mysqli_query($conexion,"SELECT * FROM `reco`");
   <link href="assets/css/sidebar-menu.css" rel="stylesheet"/>
   <!-- Custom Style-->
   <link href="assets/css/app-style.css" rel="stylesheet"/>
-  
+
 </head>
 
 
@@ -80,89 +90,101 @@ $consulta_programacion = mysqli_query($conexion,"SELECT * FROM `reco`");
 	 <?php include 'assets/php/menu_superior.php' ?>
 
 <div class="clearfix"></div>
-	
+
   <div class="content-wrapper">
     <div class="container-fluid">
-	
+
     <!--Inicio Migas de pan-->
      <div class="row pt-2 pb-2">
         <div class="col-sm-9">
-			<h4 class="page-title">Reporte General de Uso</h4>
+			<h4 class="page-title">Reporte de Pantallas</h4>
 	   </div>
      </div>
     <!-- Fin Migas de pan-->
-		
+
 	<!-- Inicio Secciones -->
 	<div class="row">
 		 <div class="col-lg-12">
           <div class="card">
-            <div class="card-header"><i class="fa fa-edit"></i> Configuración Actual</div>
+            <div class="card-header"><i class="fa fa-bar-chart"></i> Inicios de reproducción por pantalla</div>
             <div class="card-body">
               <div class="table-responsive">
-              <table id="example" class="table table-bordered">
+              <table id="example2" class="table table-bordered">
                   <thead>
                     <tr>
                       <th style="text-align: center;" scope="col">Pantalla</th>
-					  <th style="text-align: center;" scope="col">Rango de edad</th>
-					  <th style="text-align: center;" scope="col">Genero</th>
-					  <th style="text-align: center;" scope="col">fecha de interacción</th>
-                      <th style="text-align: center;" scope="col">Tiempo promedio</th>
+                      <th style="text-align: center;" scope="col">Total de inicios</th>
                     </tr>
                   </thead>
-				  
 				   <tbody>
 				<?php
-					foreach ($consulta_programacion as $row){
-						
-						$Edad = $row['Edad'];
-						$Modulo = $row['modulo'];
-						$Genero = $row['Genero'];
-						if($Genero == 'Male'){
-							$Genero = 'Masculino';
-							$ico = 'fa fa-male fa-xs';
-						}
-						if($Genero == 'Female'){
-							$Genero = 'Femenino';
-							$ico = 'fa fa-female fa-xs';
-						}
-						$fecha = $row['Hora'];
-						$fecha = date_format (new DateTime($fecha), 'd-m-Y h:i A');
-						$Tiempo = $row['Tiempo'];
+					foreach ($consulta_resumen as $row){
 				?>
                   <tr>
-					<td style="text-align: center;"><?php echo $Modulo; ?></td>
-					  <td style="text-align: center;"><?php echo $Edad; ?></td>
-					<td style="text-align: center;"><?php echo $Genero; ?> <i class="<?php echo $ico; ?>"></i></td>
-					<td style="text-align: center;"><?php echo $fecha; ?></td>
-					<td style="text-align: center;"><?php echo $Tiempo; ?> Minutos
-						<div class="progress" style="height:10px;">
-							<div class="progress-bar bg-info" style="width:<?php echo $Tiempo; ?>%" aria-valuenow="<?php echo $Tiempo; ?>" aria-valuemin="0" aria-valuemax="60"></div>
-						</div>
-                    </td>
+					<td style="text-align: center;"><?php echo htmlspecialchars($row['Modulo']); ?></td>
+					<td style="text-align: center;"><?php echo $row['Total']; ?></td>
                   </tr>
                  <?php }?>
 				 	</tbody>
-					
                 </table>
             </div>
             </div>
           </div>
         </div>
 	</div>
-		
+
+	<div class="row">
+		 <div class="col-lg-12">
+          <div class="card">
+            <div class="card-header"><i class="fa fa-edit"></i> Eventos registrados</div>
+            <div class="card-body">
+              <div class="table-responsive">
+              <table id="example" class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th style="text-align: center;" scope="col">Pantalla</th>
+                      <th style="text-align: center;" scope="col">Evento</th>
+                      <th style="text-align: center;" scope="col">Fecha y hora</th>
+                    </tr>
+                  </thead>
+
+				   <tbody>
+				<?php
+					foreach ($consulta_eventos as $row){
+
+						$Modulo = $row['Modulo'];
+						$Evento = $row['Evento'];
+						$fecha = $row['Fecha_Hora'];
+						$Fecha_Hora = date_format(new DateTime($fecha), 'd-m-Y h:i:s A');
+				?>
+                  <tr>
+					<td style="text-align: center;"><?php echo htmlspecialchars($Modulo); ?></td>
+					<td style="text-align: center;"><?php echo htmlspecialchars($Evento); ?></td>
+					<td style="text-align: center;"><?php echo $Fecha_Hora; ?></td>
+                  </tr>
+                 <?php }?>
+				 	</tbody>
+
+                </table>
+            </div>
+            </div>
+          </div>
+        </div>
+	</div>
+
 	<!-- End Row-->
-		
+
 	<!-- Inicio Secciones -->
 
     </div>
     <!-- End container-fluid-->
 
    </div><!--End content-wrapper-->
-	 
+
    <!--Start Back To Top Button-->
     <a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
     <!--End Back To Top Button-->
-	
+
 	<!--Start footer-->
 	<footer class="footer">
       <div class="container">
@@ -172,20 +194,20 @@ $consulta_programacion = mysqli_query($conexion,"SELECT * FROM `reco`");
       </div>
     </footer>
 	<!--End footer-->
-	
+
   </div><!--End wrapper-->
-  
+
 
 <!-- Bootstrap core JavaScript-->
   <script src="assets/js/jquery.min.js"></script>
   <script src="assets/js/popper.min.js"></script>
   <script src="assets/js/bootstrap.min.js"></script>
-	
+
   <!-- simplebar js -->
   <script src="assets/plugins/simplebar/js/simplebar.js"></script>
   <!-- sidebar-menu js -->
   <script src="assets/js/sidebar-menu.js"></script>
-  
+
   <!-- Custom scripts -->
   <script src="assets/js/app-script.js"></script>
 
@@ -204,12 +226,12 @@ $consulta_programacion = mysqli_query($conexion,"SELECT * FROM `reco`");
 
 
     <script>
-		
+
 	$('#example').DataTable( {
     	language: { url: 'assets/plugins/bootstrap-datatable/lang/Spanish.json' },
 		dom: 'Bfrtip', buttons: [ 'copy', 'excel', 'pdf', 'print', 'colvis' ]
 	} );
-		
+
 	$('#example2').DataTable( {
     	language: { url: 'assets/plugins/bootstrap-datatable/lang/Spanish.json' },
 		dom: 'Bfrtip', buttons: [ 'copy', 'excel', 'pdf', 'print', 'colvis' ]

@@ -110,7 +110,7 @@ $consulta_programacion = mysqli_query($conexion,"SELECT * FROM `visitantes`");
 					  <th style="text-align: center;" scope="col">Numero</th>
 						<th style="text-align: center;" scope="col">Nombres</th>
                       	<th style="text-align: center;" scope="col">Apellidos</th>
-						<th style="text-align: center;" scope="col">Módulo</th>
+						<th style="text-align: center;" scope="col">Pantalla</th>
 						<th style="text-align: center;" scope="col">Fecha de interacción</th>
                     </tr>
                   </thead>

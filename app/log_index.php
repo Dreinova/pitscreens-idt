@@ -28,15 +28,34 @@ session_start([
     'gc_maxlifetime'  => 31536000,
 ]);
 
+include '../admin/assets/php/Conexion_DB.php';
+
+/* URL estable por pantalla (aditivo): abrir con ?pantalla=<modulos.ID>
+   selecciona esa pantalla directamente, igual que si se hubiera elegido
+   a mano en el selector de abajo. Si el ID no existe, se ignora por
+   completo y el flujo normal sigue intacto. */
+if(isset($_GET['pantalla'])){
+	$pantalla_id   = (int) $_GET['pantalla'];
+	$sql_pantalla  = mysqli_query($conexion, "SELECT nombre_modulo FROM modulos WHERE ID = $pantalla_id");
+	$row_pantalla  = $sql_pantalla ? mysqli_fetch_array($sql_pantalla) : null;
+	if($row_pantalla){
+		$_SESSION['log-modulo'] = true;
+		$_SESSION['modulo']     = $row_pantalla['nombre_modulo'];
+		$_SESSION['modulo_id']  = $pantalla_id;
+		header('Location: index.php');
+		exit();
+	}
+}
+
 /* Si ya hay sesión de módulo o de admin, ir directamente al inicio */
 if(isset($_SESSION['log-modulo'])){
 	header('Location: index.php');
+	exit();
 }
 if(isset($_SESSION['logeado'])){
 	header('Location: index.php');
+	exit();
 }
-
-include '../admin/assets/php/Conexion_DB.php';
 
 // Obtener todos los módulos registrados para mostrar en el selector
 $consulta_modulo = mysqli_query($conexion, "SELECT * FROM modulos");
@@ -46,7 +65,18 @@ if(isset($_POST['entrar'])){
 	$Modulo = $_POST['modulo'];
 	$_SESSION['log-modulo'] = true;
 	$_SESSION['modulo']     = $Modulo;
+
+	// Resolver también el ID de esa pantalla, para que quede disponible en
+	// sesión igual que cuando se entra vía ?pantalla=<ID>.
+	$Modulo_esc   = mysqli_real_escape_string($conexion, $Modulo);
+	$sql_id       = mysqli_query($conexion, "SELECT ID FROM modulos WHERE nombre_modulo = '$Modulo_esc' LIMIT 1");
+	$row_id       = $sql_id ? mysqli_fetch_array($sql_id) : null;
+	if($row_id){
+		$_SESSION['modulo_id'] = (int) $row_id['ID'];
+	}
+
 	header('Location: index.php');
+	exit();
 }
 ?>
 
@@ -90,11 +120,11 @@ function lanzadera(){
 
 		<main class="kiosk-main">
 			<div class="kiosk-card">
-				<h2 class="kiosk-heading">Selecciona el módulo<br>de este punto</h2>
+				<h2 class="kiosk-heading">Selecciona la pantalla<br>de este punto</h2>
 				<p class="kiosk-subtext">Este ajuste solo debe hacerse una vez al configurar la pantalla</p>
 				<form class="kiosk-form" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST">
 					<div class="kiosk-field">
-						<label class="sr-only" for="modulo">Módulo</label>
+						<label class="sr-only" for="modulo">Pantalla</label>
 						<select class="kiosk-select" id="modulo" name="modulo">
 							 <?php
 								foreach ($consulta_modulo as $modulos){
