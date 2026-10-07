@@ -14,13 +14,13 @@
 
     <li class="nav-item">
       <a class="nav-link dropdown-toggle dropdown-toggle-nocaret" data-toggle="dropdown" href="#">
-        <span class="user-profile"><img src="<?php echo $foto_user; ?>" class="img-circle" alt="user avatar"></span>
+        <span class="user-profile"><?php echo idt_avatar($foto_user, $mail_user, 'img-circle'); ?></span>
       </a>
       <ul class="dropdown-menu dropdown-menu-right">
        <li class="dropdown-item user-details">
         <a href="javaScript:void();">
            <div class="media">
-             <div class="avatar"><img class="align-self-start mr-3" src="<?php echo $foto_user; ?>" alt="user avatar"></div>
+             <div class="avatar"><?php echo idt_avatar($foto_user, $mail_user, 'align-self-start mr-3'); ?></div>
             <div class="media-body">
             <h6 class="mt-2 user-title"><?php echo $name_user; ?></h6>
             <p class="user-subtitle"><?php echo $mail_user; ?></p>

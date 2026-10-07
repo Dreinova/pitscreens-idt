@@ -1,3 +1,20 @@
+<?php
+/**
+ * Devuelve el <img> de la foto de perfil si existe, o si no, una insignia
+ * circular con la inicial del correo sobre fondo azul institucional —
+ * evita el ícono de imagen rota cuando el usuario no ha subido foto.
+ */
+function idt_avatar($foto, $correo, $class = '', $variant = 'circle') {
+	$foto = trim((string) $foto);
+	if ($foto !== '' && file_exists(__DIR__ . '/../../' . $foto)) {
+		return '<img class="' . htmlspecialchars($class) . '" src="' . htmlspecialchars($foto) . '" alt="Foto de perfil">';
+	}
+	$inicial = strtoupper(substr(trim((string) $correo), 0, 1));
+	if ($inicial === '') { $inicial = '?'; }
+	$variantClass = $variant === 'block' ? 'avatar-initial-block' : 'avatar-initial';
+	return '<span class="' . $variantClass . ' ' . htmlspecialchars($class) . '">' . htmlspecialchars($inicial) . '</span>';
+}
+?>
 <!--inicio menú lateral-->
 <div id="sidebar-wrapper" data-simplebar="" data-simplebar-auto-hide="true">
 	
@@ -12,7 +29,7 @@
    <div class="user-details">
 	  <div class="media align-items-center user-pointer collapsed" data-toggle="collapse" data-target="#user-dropdown">
 	    <div class="avatar">
-			<img class="mr-3 side-user-img" src="<?php echo $foto_user; ?>" alt="user avatar">
+			<?php echo idt_avatar($foto_user, $mail_user, 'mr-3 side-user-img'); ?>
 		  </div>
 	     <div class="media-body">
 	     <h6 class="side-user-name"><?php echo $name_user; ?></h6>

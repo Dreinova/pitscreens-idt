@@ -144,7 +144,7 @@ mysqli_close($conexion);
 				
 					<div class="col-12 col-lg-4">
 						<div class="card">
-							<img src="<?php echo $foto_user; ?>" class="card-img-top" alt="Card image cap">
+							<?php echo idt_avatar($foto_user, $mail_user, 'card-img-top', 'block'); ?>
 								<div class="card-body">
 								<h4 class="card-title">Perfil de usuario</h4>
 								<h6>Nombre:</h6>

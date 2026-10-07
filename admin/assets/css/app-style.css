@@ -5842,11 +5842,11 @@ body.bg-theme7, body.bg-theme8, body.bg-theme9, body.bg-theme10, body.bg-theme11
 }
 
 ::placeholder {
-	color: var(--color-text-muted) !important;
+	color: #5B6472 !important;
 	opacity: 1 !important;
 }
-:-ms-input-placeholder { color: var(--color-text-muted) !important; }
-::-ms-input-placeholder { color: var(--color-text-muted) !important; }
+:-ms-input-placeholder { color: #5B6472 !important; }
+::-ms-input-placeholder { color: #5B6472 !important; }
 ::selection { background: var(--color-primary-light); color: var(--color-text); }
 select option { background: var(--color-surface); color: var(--color-text); }
 
@@ -5891,6 +5891,11 @@ code { color: #C0392B; }
 }
 
 .brand-logo {
+	/* La regla original (línea ~759) fija height/line-height:60px para un
+	   logo de una sola línea de texto — el logo de Bogotá es más alto y
+	   se desbordaba sobre .user-details. Se anula aquí. */
+	height: auto;
+	line-height: normal;
 	border-bottom: 1px solid var(--color-border);
 	padding: 18px 16px;
 }
@@ -5931,6 +5936,43 @@ code { color: #C0392B; }
 }
 .user-setting-menu > li > a:hover { color: var(--color-primary) !important; background: var(--color-primary-light); }
 .user-setting-menu > li > a i { color: inherit; }
+
+/* Insignia con la inicial del correo — reemplaza la foto de perfil cuando
+   el usuario no tiene una (evita el ícono de imagen rota). */
+.avatar-initial {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--color-primary-dark);
+	color: #fff;
+	font-weight: 700;
+	border-radius: 50%;
+	flex-shrink: 0;
+	line-height: 1;
+}
+.avatar-initial.side-user-img,
+.avatar-initial.img-circle {
+	width: 35px;
+	height: 35px;
+	font-size: 14px;
+}
+.avatar-initial.align-self-start {
+	width: 50px;
+	height: 50px;
+	font-size: 18px;
+}
+.avatar-initial-block {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--color-primary-dark);
+	color: #fff;
+	font-weight: 700;
+	height: 180px;
+	font-size: 56px;
+	border-top-left-radius: var(--radius-lg);
+	border-top-right-radius: var(--radius-lg);
+}
 
 .sidebar-menu li.sidebar-header {
 	color: var(--color-text-muted) !important;
@@ -6046,23 +6088,27 @@ code { color: #C0392B; }
 
 /* ---- Formularios ---- */
 
+/* !important: la regla original (línea ~3046-3049) fuerza
+   "color: #fff !important" (texto blanco, pensado para el tema oscuro) —
+   sin !important aquí, ese blanco gana aunque esta regla cargue después,
+   y el texto escrito queda invisible sobre el fondo ahora claro. */
 .form-control {
-	background-color: var(--color-surface);
+	background-color: var(--color-surface) !important;
 	border: 1px solid var(--color-border);
-	color: var(--color-text);
+	color: var(--color-text) !important;
 	border-radius: var(--radius-sm);
 }
 .form-control:focus {
-	background-color: var(--color-surface);
+	background-color: var(--color-surface) !important;
 	border-color: var(--color-primary);
-	color: var(--color-text);
+	color: var(--color-text) !important;
 	box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 .form-control:disabled, .form-control[readonly] {
-	background-color: var(--color-surface-alt);
-	color: var(--color-text-muted);
+	background-color: var(--color-surface-alt) !important;
+	color: var(--color-text-muted) !important;
 }
-.form-control-position i { color: var(--color-text-muted); }
+.form-control-position i { color: var(--color-primary) !important; font-size: 15px; opacity: 0.85; }
 .input-shadow { box-shadow: none; }
 
 /* ---- Tablas ---- */

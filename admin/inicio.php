@@ -82,7 +82,7 @@ $funcion_user = $datos['Funcion'];
         <div class="col-lg-12">
 		  <div> <!--Please remove the height before using this page-->
 		      <h1>Bienvenido</h1>
-          <p>Desde esta aplicación tiene acceso a la gestión de usuarios y a los reportes generados por los módulos de Autoatención SuperSubsidio.</p>
+          <p>Desde esta aplicación tiene acceso a la gestión de usuarios y a los reportes generados por los módulos de los Puntos de Información Turística.</p>
 		  </div>
         </div>
       </div>
