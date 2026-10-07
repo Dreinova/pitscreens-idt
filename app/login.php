@@ -17,6 +17,11 @@ $modulo = $_SESSION['modulo'];
 
 include('../admin/assets/php/Conexion_DB.php');
 
+/* Tiempo de inactividad configurable desde el admin (Inactividad1.js) */
+$consulta_config = mysqli_query($conexion, "SELECT Tiempo_Inactividad_Kiosco FROM `configuracion` LIMIT 1");
+$row_config = mysqli_fetch_array($consulta_config);
+$tiempo_inactividad_ms = $row_config ? ((int) $row_config['Tiempo_Inactividad_Kiosco'] * 1000) : 60000;
+
 ?>
 
 <!doctype html>
@@ -83,8 +88,10 @@ function lanzadera(){
 	<script src="assets/js/jquery.min.js"></script>
 	<!-- Scripts IDT app -->
 	<script type="text/javascript" src="assets/js/IDT_app.js"></script>
+	<!-- Tiempo de inactividad configurable desde el admin -->
+	<script>var IDT_TIMEOUT_MS = <?php echo $tiempo_inactividad_ms; ?>;</script>
 	<!-- Scripts Inactividad -->
 	<script type="text/javascript" src="assets/js/Inactividad1.js"></script>
-	
+
 </body>
 </html>

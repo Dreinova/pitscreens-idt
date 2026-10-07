@@ -81,6 +81,12 @@ function idt_avatar($foto, $correo, $class = '', $variant = 'circle') {
           <i class="fa fa-crop"></i><span>Frame</span>
         </a>
       </li>
+
+	  <li>
+        <a href="configuracion.php" class="waves-effect">
+          <i class="fa fa-clock-o"></i><span>Configuración</span>
+        </a>
+      </li>
 	<?php
 		if($funcion_user == 'Administrador'){
 			echo '

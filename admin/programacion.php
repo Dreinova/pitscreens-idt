@@ -55,10 +55,14 @@ $funcion_user = $datos['Funcion'];
 /* --- Consultar todas las programaciones para mostrar en la tabla --- */
 $consulta_programacion = mysqli_query($conexion, "SELECT * FROM `lista-reproduccion`");
 
+/* --- Módulos registrados, para el selector "General / módulo específico" --- */
+$consulta_modulos_sel = mysqli_query($conexion, "SELECT * FROM `modulos`");
+
 /* --- Procesamiento del formulario para crear nueva programación --- */
 if(isset($_POST['enviar'])){
 
 	$Nombre = $_REQUEST["Nombre"];
+	$Modulo = trim($_REQUEST["Modulo"]); // vacío = general (todos los módulos)
 
 	// Combinar la fecha y hora del campo datetime-local del formulario
 	$fecha_inicio = $_REQUEST["Fecha"];
@@ -70,8 +74,8 @@ if(isset($_POST['enviar'])){
 
 	// Insertar la nueva programación en la base de datos
 	$sql_programacion = "INSERT INTO `lista-reproduccion`
-                         (Nombre, `Fecha-Inicio`, Estado, `Fecha-Modificacion`, Usuario)
-                         VALUES ('$Nombre', '$fecha_inicio', '$Estado', '$hoy', '$name_user')";
+                         (Nombre, `Modulo`, `Fecha-Inicio`, Estado, `Fecha-Modificacion`, Usuario)
+                         VALUES ('$Nombre', " . ($Modulo === '' ? 'NULL' : "'$Modulo'") . ", '$fecha_inicio', '$Estado', '$hoy', '$name_user')";
 
 	$nueva_programacion = mysqli_query($conexion, $sql_programacion);
 
@@ -177,7 +181,22 @@ if(isset($_POST['enviar'])){
 									</div>
 								</div>
 							</div>
-							
+
+							<div class="col-12 col-lg-6 col-xl-6">
+								<div class="form-group row">
+									<label class="col-lg-12 col-form-label form-control-label">Alcance</label>
+									<div class="col-lg-10">
+										<select class="form-control" name="Modulo">
+											<option value="">General (todos los módulos)</option>
+											<?php foreach ($consulta_modulos_sel as $mod_sel){ ?>
+											<option value="<?php echo htmlspecialchars($mod_sel['nombre_modulo']); ?>"><?php echo htmlspecialchars($mod_sel['nombre_modulo']); ?></option>
+											<?php } ?>
+										</select>
+										<small class="text-muted">Si eliges un módulo específico, esta programación solo se mostrará ahí — los demás módulos siguen con el contenido general mientras no tengan la suya propia.</small>
+									</div>
+								</div>
+							</div>
+
 						</div>
                        
                         <?php 
@@ -205,6 +224,7 @@ if(isset($_POST['enviar'])){
                   <thead>
                     <tr>
                       <th scope="col">Nombre de programación</th>
+					  <th scope="col">Módulo</th>
 					  <th scope="col">Fecha de Programación</th>
                       <th scope="col">Estado</th>
 					  <th scope="col">Fecha de Modificación</th>
@@ -229,9 +249,11 @@ if(isset($_POST['enviar'])){
 						$ultima_mod = $row['Fecha-Modificacion'];
 						$ultima_mod2 = date_format (new DateTime($ultima_mod), 'd-m-Y h:i A');
 						$user = $row['Usuario'];
+						$modulo_prog = !empty($row['Modulo']) ? $row['Modulo'] : '<span class="badge badge-primary">General</span>';
 				?>
                   <tr>
 					<td><?php echo $nombre_prog; ?></td>
+					<td><?php echo $modulo_prog; ?></td>
 					<td><?php echo $fecha_inicio; ?></td>
 					<td><?php echo $estado; ?></td>
 					<td><?php echo $ultima_mod2; ?></td>

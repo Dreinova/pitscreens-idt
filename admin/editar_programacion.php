@@ -32,21 +32,27 @@ $consulta_programacion = mysqli_query($conexion,"SELECT * FROM `lista-reproducci
 $datos_programacion = mysqli_fetch_array($consulta_programacion);
 
 $Nombre_programacion = $datos_programacion['Nombre'];
+$Modulo_programacion = $datos_programacion['Modulo'];
 $fecha_inicio = $datos_programacion['Fecha-Inicio'];
 $Estado_programacion = $datos_programacion['Estado'];
+
+/* Módulos registrados, para el selector "General / módulo específico" */
+$consulta_modulos_sel = mysqli_query($conexion, "SELECT * FROM `modulos`");
 
 /* Actualizar programación */
 
 if(isset($_POST['enviar'])){
 	$ID_post = $_REQUEST["ID"];
 	$Nombre = $_REQUEST["Nombre"];
+	$Modulo = trim($_REQUEST["Modulo"]); // vacío = general (todos los módulos)
 	$fecha = $_REQUEST["Fecha"];
 	$hora = $_REQUEST["Hora"];
 	$fecha = $fecha.' '.$hora ;
 	$Estado = $_REQUEST["Estado"];
 	$hoy = date("Y-m-d H:i:s");
-	
-	$sql_programacion = "UPDATE `lista-reproduccion` SET `Nombre` = '$Nombre', `Fecha-Inicio` = '$fecha', `Estado` = '$Estado', `Fecha-Modificacion` = '$hoy', `Usuario` = '$name_user' WHERE `lista-reproduccion`.`ID` = $ID_post";
+
+	$sql_modulo = $Modulo === '' ? "NULL" : "'$Modulo'";
+	$sql_programacion = "UPDATE `lista-reproduccion` SET `Nombre` = '$Nombre', `Modulo` = $sql_modulo, `Fecha-Inicio` = '$fecha', `Estado` = '$Estado', `Fecha-Modificacion` = '$hoy', `Usuario` = '$name_user' WHERE `lista-reproduccion`.`ID` = $ID_post";
 
     $Actualizar_programacion = mysqli_query($conexion,$sql_programacion);
 		
@@ -156,7 +162,21 @@ if(isset($_POST['enviar'])){
 									</div>
 								</div>
 							</div>
-							
+
+							<div class="col-12 col-lg-6 col-xl-6">
+								<div class="form-group row">
+									<label class="col-lg-12 col-form-label form-control-label">Alcance</label>
+									<div class="col-lg-10">
+										<select class="form-control" name="Modulo">
+											<option value="" <?php echo empty($Modulo_programacion) ? 'selected' : ''; ?>>General (todos los módulos)</option>
+											<?php foreach ($consulta_modulos_sel as $mod_sel){ ?>
+											<option value="<?php echo htmlspecialchars($mod_sel['nombre_modulo']); ?>" <?php echo ($Modulo_programacion === $mod_sel['nombre_modulo']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($mod_sel['nombre_modulo']); ?></option>
+											<?php } ?>
+										</select>
+									</div>
+								</div>
+							</div>
+
 						</div>
                        
                         <?php 

@@ -46,6 +46,11 @@ include '../admin/assets/php/Conexion_DB.php';
 $consulta_URL = mysqli_query($conexion, "SELECT * FROM `frame` LIMIT 1");
 $row_URL      = mysqli_fetch_array($consulta_URL);
 $URL          = $row_URL["URL"];
+
+/* Tiempo de inactividad configurable desde el admin (Inactividad2.js) */
+$consulta_config = mysqli_query($conexion, "SELECT Tiempo_Inactividad_Contenido FROM `configuracion` LIMIT 1");
+$row_config = mysqli_fetch_array($consulta_config);
+$tiempo_inactividad_ms = $row_config ? ((int) $row_config['Tiempo_Inactividad_Contenido'] * 1000) : 900000;
 ?>
 
 <!doctype html>
@@ -102,6 +107,8 @@ window.onload = lanzadera;
 
 <!-- Scripts JQuery -->
 <script src="assets/js/jquery.min.js"></script>
+<!-- Tiempo de inactividad configurable desde el admin -->
+<script>var IDT_TIMEOUT_MS = <?php echo $tiempo_inactividad_ms; ?>;</script>
 <!-- Scripts Inactividad -->
 <script type="text/javascript" src="assets/js/Inactividad2.js"></script>
 <!-- Scripts IDT app -->

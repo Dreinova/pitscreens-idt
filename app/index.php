@@ -52,42 +52,71 @@ $ahora      = date("Y-m-d H:i:s");
 $NuevaFecha = strtotime('+1 minute', strtotime($ahora));
 $NuevaFecha = date('Y-m-d H:i:s', $NuevaFecha);
 
-/* --- Verificación y activación de programación según fecha actual --- */
-// Buscar la programación más reciente que ya debería estar activa
-$sql_programaciones = mysqli_query($conexion,
+/* --- Contenido específico de este módulo (si existe) --- */
+// Si hay una programación atada a ESTE módulo con fecha ya vigente, se usa
+// directo — no participa del mecanismo de Estado=1 (ese sigue siendo
+// exclusivo del contenido general, más abajo), así que cada módulo puede
+// tener la suya sin pisar a los demás.
+$modulo_actual   = mysqli_real_escape_string($conexion, $modulo);
+$sql_especifica  = mysqli_query($conexion,
     "SELECT * FROM `lista-reproduccion`
-     WHERE `Fecha-Inicio` <= NOW()
+     WHERE `Modulo` = '$modulo_actual' AND `Fecha-Inicio` <= NOW()
      ORDER BY `Fecha-Inicio` DESC LIMIT 1"
 );
-$rowProgramaciones = mysqli_fetch_array($sql_programaciones);
-$ID_programaciones = $rowProgramaciones['ID'];
-$fecha_inicio      = $rowProgramaciones['Fecha-Inicio'];
+$row_especifica  = mysqli_fetch_array($sql_especifica);
 
-if($ahora > $fecha_inicio){
-	// Activar la programación más reciente y desactivar el resto
-	$activar   = mysqli_query($conexion,
-        "UPDATE `lista-reproduccion` SET `Estado` = '1'
-         WHERE `lista-reproduccion`.`ID` = $ID_programaciones"
-    );
-	$desactivar = mysqli_query($conexion,
-        "UPDATE `lista-reproduccion` SET `Estado` = '0'
-         WHERE NOT `lista-reproduccion`.`ID` = $ID_programaciones"
-    );
+if ($row_especifica) {
+	$ID_programacion   = $row_especifica['ID'];
+	$name_programacion = $row_especifica['Nombre'];
+}
+else {
+	/* --- Sin programación propia: cae al contenido general --- */
+	// Buscar la programación GENERAL (sin módulo) más reciente que ya
+	// debería estar activa.
+	$sql_programaciones = mysqli_query($conexion,
+	    "SELECT * FROM `lista-reproduccion`
+	     WHERE (`Modulo` IS NULL OR `Modulo` = '') AND `Fecha-Inicio` <= NOW()
+	     ORDER BY `Fecha-Inicio` DESC LIMIT 1"
+	);
+	$rowProgramaciones = mysqli_fetch_array($sql_programaciones);
+	$ID_programaciones = $rowProgramaciones['ID'];
+	$fecha_inicio      = $rowProgramaciones['Fecha-Inicio'];
+
+	if($ahora > $fecha_inicio){
+		// Activar la programación general más reciente y desactivar el
+		// resto de programaciones generales (las de módulo específico no
+		// usan Estado, así que se dejan fuera de este switcheo).
+		$activar   = mysqli_query($conexion,
+	        "UPDATE `lista-reproduccion` SET `Estado` = '1'
+	         WHERE `lista-reproduccion`.`ID` = $ID_programaciones"
+	    );
+		$desactivar = mysqli_query($conexion,
+	        "UPDATE `lista-reproduccion` SET `Estado` = '0'
+	         WHERE NOT `lista-reproduccion`.`ID` = $ID_programaciones
+	         AND (`Modulo` IS NULL OR `Modulo` = '')"
+	    );
+	}
+
+	/* --- Obtener la programación general activa --- */
+	$consulta_programacion = mysqli_query($conexion,
+	    "SELECT * FROM `lista-reproduccion` WHERE Estado = '1' AND (`Modulo` IS NULL OR `Modulo` = '') LIMIT 1"
+	);
+	$row_programacion  = mysqli_fetch_array($consulta_programacion);
+	$ID_programacion   = $row_programacion["ID"];
+	$name_programacion = $row_programacion["Nombre"];
 }
 
-/* --- Obtener la programación activa y su contenido multimedia --- */
-$consulta_programacion = mysqli_query($conexion,
-    "SELECT * FROM `lista-reproduccion` WHERE Estado = '1' LIMIT 1"
-);
-$row_programacion  = mysqli_fetch_array($consulta_programacion);
-$ID_programacion   = $row_programacion["ID"];
-$name_programacion = $row_programacion["Nombre"];
-
-// Obtener todos los elementos de contenido de la lista activa
+// Obtener todos los elementos de contenido de la lista (específica o general)
 $consultaContenido = mysqli_query($conexion,
     "SELECT * FROM `contenido` WHERE `lista-reproduccion` = $ID_programacion"
 );
 $numero_filas = mysqli_num_rows($consultaContenido);
+
+/* --- Contenido de respaldo cuando no hay nada programado --- */
+$consulta_config = mysqli_query($conexion, "SELECT * FROM `configuracion` LIMIT 1");
+$row_config       = mysqli_fetch_array($consulta_config);
+$protector_url    = $row_config ? $row_config['Protector_URL']  : 'IDT.mp4';
+$protector_tipo   = $row_config ? $row_config['Protector_Tipo'] : 'video';
 
 ?>
 
@@ -187,7 +216,8 @@ var loopAssets = [
 	}
 		}
 	else{
-		echo '{ contentUrl: "assets/media/IDT.mp4", contentType: "video/mp4", mediaType: "video"},';
+		$protector_contentType = $protector_tipo === 'image' ? 'image/jpg' : 'video/mp4';
+		echo '{ contentUrl: "../admin/assets/galeria/' . $protector_url . '", contentType: "' . $protector_contentType . '", mediaType: "' . $protector_tipo . '"},';
 	}
 	?>
 
