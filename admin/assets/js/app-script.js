@@ -74,8 +74,19 @@ $(function () {
 // dispararía dos altas/ediciones). Solo corre cuando el navegador ya
 // decidió enviar el formulario (los onclick de validación que retornan
 // false siguen cancelando el submit antes de llegar aquí).
+//
+// OJO: deshabilitar el botón debe ser asíncrono (setTimeout 0). Si se
+// deshabilita de forma síncrona dentro del propio evento "submit", el
+// navegador excluye ese control de los datos que realmente envía (un
+// control disabled no es un "successful control" según el spec de
+// formularios) — eso rompió el login en producción: admin/index.php
+// depende de isset($_POST['btn-entrar']) para saber que se envió el
+// formulario, y ese campo nunca llegaba.
 $(document).on('submit', 'form', function () {
-	$(this).find('button[type="submit"], input[type="submit"]').prop('disabled', true);
+	var $form = $(this);
+	setTimeout(function () {
+		$form.find('button[type="submit"], input[type="submit"]').prop('disabled', true);
+	}, 0);
 });
 
 
