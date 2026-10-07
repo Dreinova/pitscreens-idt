@@ -1,0 +1,27 @@
+# URLs amigables: /admin/usuarios en vez de /admin/usuarios.php
+#
+# No toca ningún enlace interno de la app (siguen diciendo "usuarios.php"
+# en el código) — Apache hace todo el trabajo:
+#   1. Si alguien pide ".../archivo.php" por GET, redirige (301) a
+#      ".../archivo" — así cualquier enlace o redirect interno termina
+#      mostrando la URL limpia en el navegador.
+#   2. Si alguien pide ".../archivo" (sin extensión) y existe
+#      "archivo.php" en disco, lo sirve ahí internamente sin cambiar
+#      la URL visible.
+#
+# Los POST (formularios de login, registro, subida de contenido, etc.)
+# nunca se redirigen — un 301 en un POST lo convierte en GET en la
+# mayoría de navegadores y rompería los formularios. Por eso la regla 1
+# solo aplica a GET.
+
+RewriteEngine On
+
+RewriteCond %{REQUEST_METHOD} GET
+RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ /%1 [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.*)$ $1.php [L]

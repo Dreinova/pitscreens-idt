@@ -13,6 +13,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && a2enmod rewrite headers \
     && rm -rf /var/lib/apt/lists/*
 
+# Permite que el .htaccess de la raíz del proyecto controle las URLs
+# amigables (por defecto Apache ignora .htaccess con AllowOverride None).
+RUN printf '<Directory /var/www/html>\n\tAllowOverride All\n</Directory>\n' \
+        > /etc/apache2/conf-available/allow-override.conf \
+    && a2enconf allow-override
+
 COPY . /var/www/html/
 
 RUN mkdir -p /var/www/html/admin/assets/galeria \
