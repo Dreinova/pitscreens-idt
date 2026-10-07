@@ -1,0 +1,6 @@
+# Contenido subido por el panel admin (imágenes/video de la galería)
+admin/assets/galeria/*
+!admin/assets/galeria/.gitkeep
+
+# Documentación (proyecto Docusaurus aparte, no se versiona aquí)
+pitScreens-docs/
