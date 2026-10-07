@@ -40,4 +40,9 @@ echo "Información del host: " . mysqli_get_host_info($conexion) . PHP_EOL;
 */
 
 /* --- Fin conexión a base de datos --- */
-?>
+
+// Sin etiqueta de cierre "?>" a propósito: es un archivo de solo inclusión,
+// y cualquier espacio/salto de línea después de "?>" se envía como salida
+// HTML real — eso rompía session_start()/header() en las páginas que lo
+// incluyen (el archivo de producción, generado aparte, tenía justo ese
+// problema: "headers already sent" en contenido.php/editar_frame.php).

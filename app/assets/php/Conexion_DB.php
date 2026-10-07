@@ -22,4 +22,5 @@ echo "Información del host: " . mysqli_get_host_info($conexion) . PHP_EOL;*/
 
 /* Fin conexion a base de datos */
 
-?>
+// Sin etiqueta de cierre "?>" a propósito: ver nota en
+// admin/assets/php/Conexion_DB.php (evita el bug de "headers already sent").
