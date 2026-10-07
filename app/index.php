@@ -155,7 +155,7 @@ function lanzadera(){
 
 	<div class="item contenedor-medios"></div>
 
-	<a class="kiosk-idle" href="frame.php" aria-label="Toca la pantalla para comenzar">
+	<a class="kiosk-idle" href="login.php" aria-label="Toca la pantalla para comenzar">
 		<div class="kiosk-idle-content">
 			<div class="kiosk-touch-badge">
 				<img class="kiosk-touch-icon" src="assets/img/Mano_Touch.svg" alt="">
