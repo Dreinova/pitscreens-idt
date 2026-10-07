@@ -16,6 +16,16 @@
 
 RewriteEngine On
 
+# Detrás de Traefik, Apache ve tráfico HTTP plano aunque el visitante esté
+# en HTTPS (Traefik termina el TLS) — sin esto, el redirect de abajo
+# generaría "http://..." y forzaría un salto extra innecesario.
+RewriteCond %{HTTP:X-Forwarded-Proto} =https
+RewriteCond %{REQUEST_METHOD} GET
+RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ https://%{HTTP_HOST}/%1 [R=301,L]
+
+RewriteCond %{HTTP:X-Forwarded-Proto} !=https
 RewriteCond %{REQUEST_METHOD} GET
 RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]
 RewriteCond %{REQUEST_FILENAME} !-d
