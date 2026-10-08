@@ -2,16 +2,17 @@
 /**
  * frame.php — Módulo App (Pantalla)
  *
- * Pantalla de contenido interactivo del kiosco. Muestra la URL configurada
- * en la tabla `frame` dentro de un iframe, permitiendo que el visitante
- * acceda a sitios web, formularios o servicios en línea del IDT.
+ * Pantalla de contenido interactivo del kiosco. Muestra, dentro de un
+ * iframe, la URL de destino configurada para esta pantalla (o la general
+ * si no tiene una propia) en `configuracion.URL_Destino` — es a donde
+ * navega app/index.php cuando el visitante toca la pantalla.
  *
  * La URL externa se carga a través de proxy.php para evadir restricciones
  * de X-Frame-Options que impiden la incrustación directa de sitios externos.
  *
  * Requisitos:
  *   - Sesión de módulo activa ($_SESSION['log-modulo']).
- *   - URL configurada en la tabla `frame` de la base de datos.
+ *   - `URL_Destino` configurada (general o de esta pantalla) en `configuracion`.
  *
  * Comportamiento de inactividad:
  *   - El script Inactividad2.js detecta cuando el usuario lleva un tiempo
@@ -42,21 +43,24 @@ $modulo = $_SESSION['modulo'];
 
 include '../admin/assets/php/Conexion_DB.php';
 
-/* Obtener la URL configurada para el iframe desde la tabla `frame` */
-$consulta_URL = mysqli_query($conexion, "SELECT * FROM `frame` LIMIT 1");
-$row_URL      = mysqli_fetch_array($consulta_URL);
-$URL          = $row_URL["URL"];
-
-/* Tiempo de inactividad configurable desde el admin (Inactividad2.js) —
-   configuración específica de este módulo si existe, si no la general. */
+/* URL de destino y tiempo de inactividad — configuración específica de
+   este módulo si existe, si no la general (misma resolución que usa
+   app/index.php para el protector). */
 $modulo_esc = mysqli_real_escape_string($conexion, $modulo);
-$consulta_config = mysqli_query($conexion, "SELECT Tiempo_Inactividad_Contenido FROM `configuracion` WHERE `Modulo` = '$modulo_esc' LIMIT 1");
+$consulta_config = mysqli_query($conexion, "SELECT `URL_Destino`, `Tiempo_Inactividad_Contenido` FROM `configuracion` WHERE `Modulo` = '$modulo_esc' LIMIT 1");
 $row_config = mysqli_fetch_array($consulta_config);
 if (!$row_config) {
-	$consulta_config = mysqli_query($conexion, "SELECT Tiempo_Inactividad_Contenido FROM `configuracion` WHERE `Modulo` IS NULL LIMIT 1");
+	$consulta_config = mysqli_query($conexion, "SELECT `URL_Destino`, `Tiempo_Inactividad_Contenido` FROM `configuracion` WHERE `Modulo` IS NULL LIMIT 1");
 	$row_config = mysqli_fetch_array($consulta_config);
 }
+$URL                   = $row_config ? trim($row_config['URL_Destino']) : '';
 $tiempo_inactividad_ms = $row_config ? ((int) $row_config['Tiempo_Inactividad_Contenido'] * 1000) : 900000;
+
+// Sin URL configurada: no hay nada que mostrar, volver al kiosco.
+if ($URL === '') {
+	header('Location: index.php');
+	exit();
+}
 ?>
 
 <!doctype html>

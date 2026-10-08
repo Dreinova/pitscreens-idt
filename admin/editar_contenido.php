@@ -1,6 +1,15 @@
 <?php
+/**
+ * editar_contenido.php — Módulo Administrador
+ *
+ * Edita una publicación (un archivo de la biblioteca dentro de una lista
+ * de reproducción): estado, orden, lista y ventana de publicación
+ * (Fecha_Inicio / Fecha_Fin, vacías = sin límite) — el kiosco lo muestra
+ * y lo retira solo según esa ventana.
+ */
 date_default_timezone_set('America/Bogota');
 include 'assets/php/Conexion_DB.php';
+include 'assets/php/contenido_helpers.php';
 
 session_start([
     'cookie_lifetime' => 7200,
@@ -31,9 +40,14 @@ $consulta_programacion = mysqli_query($conexion,"SELECT * FROM `lista-reproducci
 
 /* Consulta imagen */
 
-$id = $_GET['id'];
+$id = (int) ($_GET['id'] ?? $_POST['ID'] ?? 0);
 $consulta_imagen = mysqli_query($conexion,"SELECT * FROM `contenido` WHERE ID = $id");
 $datos_img = mysqli_fetch_array($consulta_imagen);
+
+if (!$datos_img) {
+	header("Location: contenido.php");
+	exit();
+}
 
 $ID_img = $datos_img["ID"];
 $url_img = $datos_img["URL"];
@@ -41,35 +55,51 @@ $tipo = $datos_img["Tipo"];
 $estado = $datos_img["Estado"];
 $orden = $datos_img["Orden"];
 $lista_anterior = $datos_img["Lista-Reproduccion"];
+$fecha_inicio = $datos_img["Fecha_Inicio"];
+$fecha_fin = $datos_img["Fecha_Fin"];
+
+// A dónde volver al guardar/cancelar: la página del admin desde donde se
+// llegó (contenido.php o editar_modulo.php) — nunca una URL externa.
+$volver = 'contenido.php';
+$origen = $_POST['volver'] ?? ($_SERVER['HTTP_REFERER'] ?? '');
+$origen_pagina = basename((string) parse_url($origen, PHP_URL_PATH));
+if (in_array($origen_pagina, ['contenido.php', 'editar_modulo.php'], true)) {
+	$origen_query = parse_url($origen, PHP_URL_QUERY);
+	$volver = $origen_pagina . ($origen_query ? '?' . $origen_query : '');
+}
 
 /* Actualizar imagen */
 
 if(isset($_POST['Actualizar'])){
-	
-	$id_form = $_POST["ID"];
-	$Estado = $_POST["Estado"];
-	$orden = $_POST["orden"];
-	$lista_reproduccion = $_POST["Lista"];
-	$fecha = $hoy = date("Y-m-d H:i:s");
-	
-	$actualizar_img = mysqli_query($conexion,"UPDATE `contenido` SET `Estado` = '$Estado', `Orden` = '$orden', `Lista-Reproduccion` = '$lista_reproduccion', `Usuario` = '$name_user' WHERE `ID` = $id_form");
+
+	$Estado = $_POST["Estado"] == '1' ? 1 : 0;
+	$orden = (int) $_POST["orden"];
+	$lista_reproduccion = (int) $_POST["Lista"];
+	$fecha = date("Y-m-d H:i:s");
+	$fecha_inicio_sql = fecha_sql($_POST["fecha_inicio"] ?? '');
+	$fecha_fin_sql = fecha_sql($_POST["fecha_fin"] ?? '');
+
+	if ($fecha_inicio_sql !== 'NULL' && $fecha_fin_sql !== 'NULL' && $fecha_fin_sql <= $fecha_inicio_sql) {
+		$errores = ["<p>La fecha de fin debe ser posterior a la de inicio.</p>"];
+	}
+	else {
+		$actualizar_img = mysqli_query($conexion,"UPDATE `contenido` SET `Estado` = '$Estado', `Orden` = '$orden', `Lista-Reproduccion` = '$lista_reproduccion', `Fecha_Inicio` = $fecha_inicio_sql, `Fecha_Fin` = $fecha_fin_sql, `Fecha_Modificación` = '$fecha', `Usuario` = '$name_user' WHERE `ID` = $id");
 
 		if ($actualizar_img){
 			// Marca como modificada tanto la lista nueva como la anterior (si
 			// cambió de lista), para que la sincronización en vivo del kiosco
 			// detecte el cambio sin importar a cuál lista quedó asignado.
-			mysqli_query($conexion, "UPDATE `lista-reproduccion` SET `Fecha-Modificacion` = '$fecha' WHERE `ID` = '$lista_reproduccion'");
+			marcar_lista_modificada($conexion, $lista_reproduccion);
 			if ($lista_anterior && $lista_anterior != $lista_reproduccion) {
-				mysqli_query($conexion, "UPDATE `lista-reproduccion` SET `Fecha-Modificacion` = '$fecha' WHERE `ID` = '$lista_anterior'");
+				marcar_lista_modificada($conexion, $lista_anterior);
 			}
-			echo "<p>Se han guardado los cambios correctamente.</p>";
-			header("Location: contenido.php");
+			header("Location: " . $volver);
+			exit();
 		}
-
 		else{
-			$errores = "<p>No se han guardado los cambios, intentelo mas tarde.</p>";
-			echo "<p>No se han guardado los cambios, intentelo mas tarde.</p>";
+			$errores = ["<p>No se han guardado los cambios, intentelo mas tarde.</p>"];
 		}
+	}
 }
 
 ?>
@@ -133,7 +163,7 @@ if(isset($_POST['Actualizar'])){
     <!--Inicio Migas de pan-->
      <div class="row pt-2 pb-2">
         <div class="col-sm-9">
-			<h4 class="page-title">Inicio</h4>
+			<h4 class="page-title">Editar publicación</h4>
 	   </div>
      </div>
     <!-- Fin Migas de pan-->
@@ -143,87 +173,65 @@ if(isset($_POST['Actualizar'])){
 <div class="row">
         <div class="col-lg-12">
           <div class="card">
-			  <div class="card-header text-uppercase"><i class="fa fa-file-image-o"></i> Actualice los datos de la imagen</div>
+			  <div class="card-header text-uppercase"><i class="fa fa-file-image-o"></i> <?php echo htmlspecialchars($url_img); ?></div>
             <div class="card-body">
               
-		<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="POST" enctype="multipart/form-data">
-			
+		<form action="editar_contenido.php" method="POST">
+			<input type="hidden" name="ID" value="<?php echo $id; ?>">
+			<input type="hidden" name="volver" value="<?php echo htmlspecialchars($volver); ?>">
+
 			<div class="row">
-				<input type="hidden" name="ID" value="<?php echo $id; ?>">
-				
-				<div class="col-12 col-lg-3 col-xl-3">
-					<div class="form-group row">
-						<div class="col-md-12 col-lg-12 col-xl-12">
-							<?php
-							if($tipo == 'image'){
-								echo'
-								<a href="assets/galeria/'; echo $url_img; echo'" data-fancybox="images" data-caption="'; echo $url_img; echo'">
-								<img src="assets/galeria/'; echo $url_img; echo'" class="lightbox-thumb img-thumbnail">
-								</a>
-								';
-							}
-							if($tipo == 'video'){
-								echo '<video width="100%" controls><source src="assets/galeria/'.$url_img.'" type="video/mp4"></video>';
-							}
-							?>
-						</div>
-					</div>
+				<div class="col-12 col-lg-4">
+					<?php $src_img = 'assets/galeria/' . rawurlencode($url_img); ?>
+					<?php if ($tipo == 'video'): ?>
+						<video width="100%" controls preload="metadata"><source src="<?php echo $src_img; ?>" type="video/mp4"></video>
+					<?php else: ?>
+						<a href="<?php echo $src_img; ?>" data-fancybox="images" data-caption="<?php echo htmlspecialchars($url_img); ?>">
+							<img src="<?php echo $src_img; ?>" class="lightbox-thumb img-thumbnail" alt="">
+						</a>
+					<?php endif; ?>
 				</div>
-				
-				<div class="col-12 col-lg-3 col-xl-3">
-					<div class="form-group row">
-						<label class="col-lg-12 col-form-label form-control-label">Estado de la imagen o video</label>
-						<div class="col-lg-12">
-							<select class="form-control" id="default-select" name="Estado">
-								<?php
-									if($estado == '1'){
-										echo'
-										<option value="1" selected >Activo</option>
-										<option value="0">Inactivo</option>
-										';
-									}
-									if($estado == '0'){
-										echo'
-										<option value="1" >Activo</option>
-										<option value="0" selected >Inactivo</option>
-										';
-									}
-								?>
+
+				<div class="col-12 col-lg-8">
+					<div class="form-row">
+						<div class="form-group col-md-6">
+							<label>Desde</label>
+							<input class="form-control" type="datetime-local" name="fecha_inicio" value="<?php echo fecha_input($fecha_inicio); ?>">
+							<small class="text-muted">Vacío = desde ya. Antes de esta fecha no se muestra.</small>
+						</div>
+						<div class="form-group col-md-6">
+							<label>Hasta</label>
+							<input class="form-control" type="datetime-local" name="fecha_fin" value="<?php echo fecha_input($fecha_fin); ?>">
+							<small class="text-muted">Vacío = sin fin. Al llegar esta fecha se despublica solo.</small>
+						</div>
+						<div class="form-group col-md-4">
+							<label>Estado</label>
+							<select class="form-control" name="Estado">
+								<option value="1" <?php echo $estado == '1' ? 'selected' : ''; ?>>Activo</option>
+								<option value="0" <?php echo $estado == '1' ? '' : 'selected'; ?>>Inactivo</option>
 							</select>
 						</div>
-					</div>
-				</div>
-				
-				<div class="col-12 col-lg-3 col-xl-3">
-					<div class="form-group row">
-						<label class="col-lg-12 col-form-label form-control-label">Numero de pagina</label>
-						<div class="col-lg-12">
-							<input class="form-control" type="number" name="orden" value="<?php echo $orden; ?>" placeholder="Coloque el numero en el que se visualizara" required>
+						<div class="form-group col-md-3">
+							<label>Orden</label>
+							<input class="form-control" type="number" name="orden" value="<?php echo (int) $orden; ?>" required>
 						</div>
-					</div>
-				</div>
-				
-				<div class="col-12 col-lg-3 col-xl-3">
-					<div class="form-group row">
-						<label class="col-lg-12 col-form-label form-control-label">Seleccione la lista de reproducción asignada</label>
-						<div class="col-lg-12">
-							<select class="form-control" id="default-select" name="Lista" required>
-								<option value="" selected disabled hidden>Seleccione una opción</option>
-								<?php
-									foreach ($consulta_programacion as $datos_sliders){ 
-										$ID_slider = $datos_sliders['ID'];
-										$nombre_slider = $datos_sliders['Nombre'];
-								?>
-								<option value="<?php echo $ID_slider; ?>"><?php echo $nombre_slider; ?></option>
+						<div class="form-group col-md-5">
+							<label>Lista de reproducción</label>
+							<select class="form-control" name="Lista" required>
+								<?php foreach ($consulta_programacion as $datos_sliders){ ?>
+								<option value="<?php echo (int) $datos_sliders['ID']; ?>" <?php echo $datos_sliders['ID'] == $lista_anterior ? 'selected' : ''; ?>><?php echo htmlspecialchars($datos_sliders['Nombre']); ?></option>
 								<?php } ?>
 							</select>
 						</div>
 					</div>
+					<p class="mb-0">Estado ahora:
+						<?php list(, $etq_estado, $clase_estado) = estado_publicacion($datos_img); ?>
+						<span class="badge <?php echo $clase_estado; ?>"><?php echo $etq_estado; ?></span>
+					</p>
 				</div>
-				
 			</div>
 
-			<?php 
+			<?php
 				if(!empty($errores)):
 					foreach($errores as $erro):
 						echo $erro;
@@ -231,12 +239,10 @@ if(isset($_POST['Actualizar'])){
 				endif;
 			?>
 			<div class="form-footer">
-				<a href="contenido.php" class="btn btn-secondary">Cancelar</a>
-				<input type="submit" class="btn btn-success" name="Actualizar" value="Actualizar">
+				<a href="<?php echo htmlspecialchars($volver); ?>" class="btn btn-secondary">Cancelar</a>
+				<input type="submit" class="btn btn-success" name="Actualizar" value="Guardar">
 			</div>
-			
-			
-            
+
         </form>  
 				
             </div>
@@ -270,32 +276,6 @@ if(isset($_POST['Actualizar'])){
 	
   </div><!--End wrapper-->
 	
-  <!-- Scripts de Galeria -->
-<script>
-function validarFile(all)
-{
-    //EXTENSIONES Y TAMANO PERMITIDO.
-    var extensiones_permitidas = [".jpg",".png"];
-    var tamano = 80; // EXPRESADO EN MB.
-    var rutayarchivo = all.value;
-    var ultimo_punto = all.value.lastIndexOf(".");
-    var extension = rutayarchivo.slice(ultimo_punto, rutayarchivo.length);
-    if(extensiones_permitidas.indexOf(extension) == -1)
-    {
-        alert("Extensión de archivo no valida");
-        document.getElementById(foto).value = "";
-		location.reload();
-        return; // Si la extension es no válida ya no chequeo lo de abajo.
-    }
-    if((all.files[0].size / 1048576) > tamano)
-    {
-        alert("El archivo no puede superar los "+tamano+"MB");
-        document.getElementById(foto).value = "";
-		location.reload();
-        return;
-    }
-}
-</script>
 
   <!-- Bootstrap core JavaScript-->
   <script src="assets/js/jquery.min.js"></script>

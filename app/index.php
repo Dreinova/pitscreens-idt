@@ -123,11 +123,28 @@ else {
 	$fecha_mod_lista   = $row_programacion["Fecha-Modificacion"];
 }
 
-// Obtener todos los elementos de contenido de la lista (específica o general)
+// Elementos de la lista (específica o general) que se deben ver AHORA:
+// activos y dentro de su ventana de publicación (Fecha_Inicio/Fecha_Fin,
+// NULL = sin límite), en el orden definido desde el admin.
+$ID_programacion   = (int) $ID_programacion;
 $consultaContenido = mysqli_query($conexion,
-    "SELECT * FROM `contenido` WHERE `lista-reproduccion` = $ID_programacion"
+    "SELECT * FROM `contenido`
+     WHERE `Lista-Reproduccion` = $ID_programacion AND `Estado` = 1
+       AND (`Fecha_Inicio` IS NULL OR `Fecha_Inicio` <= '$ahora')
+       AND (`Fecha_Fin` IS NULL OR `Fecha_Fin` > '$ahora')
+     ORDER BY CAST(`Orden` AS SIGNED) ASC, `ID` ASC"
 );
-$numero_filas = mysqli_num_rows($consultaContenido);
+$filasContenido = [];
+while ($fila = mysqli_fetch_array($consultaContenido)) {
+	$filasContenido[] = $fila;
+}
+$numero_filas = count($filasContenido);
+
+// IDs visibles ahora, ordenados — parte de la versión: cuando algo entra
+// o sale de su ventana, tiempo.php reporta otro conjunto y la pantalla
+// recarga sola (publicación/despublicación automática).
+$idsVisibles = array_map(function ($f) { return (int) $f['ID']; }, $filasContenido);
+sort($idsVisibles);
 
 /* --- Protector de pantalla: configuración específica de este módulo si
        existe, si no la general --- */
@@ -145,12 +162,13 @@ if (!$row_config) {
 
 $protector_url    = $row_config ? $row_config['Protector_URL']  : 'IDT.mp4';
 $protector_tipo   = $row_config ? $row_config['Protector_Tipo'] : 'video';
+$url_destino      = $row_config ? trim($row_config['URL_Destino']) : '';
 $id_config        = $row_config ? $row_config['ID'] : null;
 $fecha_mod_config = $row_config ? $row_config['Fecha-Modificacion'] : null;
 
 /* --- Versión del contenido/configuración vigente, para que el polling de
        abajo detecte cambios hechos desde el admin y recargue la pantalla. */
-$contenidoVersion = $ID_programacion . '-' . $fecha_mod_lista . '|' . $id_config . '-' . $fecha_mod_config;
+$contenidoVersion = ($ID_programacion ?: '') . '-' . $fecha_mod_lista . '|' . $id_config . '-' . $fecha_mod_config . '|' . implode(',', $idsVisibles);
 
 ?>
 
@@ -189,10 +207,11 @@ function lanzadera(){
 
 	<div class="item contenedor-medios"></div>
 
-	<!-- Protector de pantalla: se muestra mientras nadie ha tocado. Solo es
-	     clickeable (y solo tiene sentido tocarla) si hay contenido real
-	     configurado para pasar a reproducir — si no, se oculta por JS. -->
-	<div class="kiosk-signage-overlay" id="overlayProtector" onclick="iniciarContenidoReal();">
+	<!-- Invitación a tocar: se muestra siempre, encima del protector y del
+	     contenido propio (que ya se reproducen solos, mezclados, desde que
+	     carga la página). Solo es clickeable si hay una URL de destino
+	     configurada para esta pantalla — si no, se oculta por JS. -->
+	<div class="kiosk-signage-overlay" id="overlayProtector" onclick="irAUrlDestino();">
 		<div class="kiosk-idle-content">
 			<div class="kiosk-touch-badge">
 				<img class="kiosk-touch-icon" src="assets/img/Mano_Touch.svg" alt="">
@@ -222,7 +241,7 @@ function lanzadera(){
 $(document).ready(function() {
       var refreshId =  setInterval( function(){
     $('#tiempo').load('tiempo.php', function(responseText){
-		// tiempo.php responde "ahora|idLista-fechaLista|idConfig-fechaConfig"
+		// tiempo.php responde "ahora|idLista-fechaLista|idConfig-fechaConfig|idsVisibles"
 		// — si la parte de versión cambió respecto a la que se cargó con
 		// esta página, el admin editó algo: recargar de verdad.
 		var partes = String(responseText).split('|');
@@ -241,8 +260,8 @@ $(document).ready(function() {
 // si todavía no hay nada programado).
 var contenidoAssets = [
 	<?php
-	while($row = mysqli_fetch_array($consultaContenido)){
-		$URLContenido = $row['URL'];
+	foreach($filasContenido as $row){
+		$URLContenido = rawurlencode($row['URL']);
 		$tipoContenido = $row['Tipo'];
 
 		if($tipoContenido == 'video'){
@@ -267,6 +286,11 @@ var protectorAsset = {
 	mediaType: "<?php echo $protector_tipo; ?>"
 };
 
+// URL a la que navega el kiosco cuando tocan la pantalla (general o propia
+// de esta pantalla, configurable desde el admin). Vacía = sin configurar
+// todavía: el ícono de "toca para comenzar" ni se muestra.
+var urlDestino = "<?php echo $url_destino; ?>";
+
 // Versión con la que se cargó esta página — el polling de arriba la compara
 // contra la versión que reporte el servidor en cada "tick".
 var contenidoVersion = "<?php echo $contenidoVersion; ?>";
@@ -275,9 +299,13 @@ var previewContainer = $(".contenedor-medios");
 var overlayProtector  = document.getElementById('overlayProtector');
 var curIndex = 0;
 
+// Protector + contenido propio de esta pantalla, todo junto en un solo
+// bucle continuo que arranca solo al cargar la página — ya no hay nada
+// que "revelar" al tocar, el toque ahora navega a una URL (ver abajo).
+var playlist = [protectorAsset].concat(contenidoAssets);
+
 // Funcion para agregar los tipos de formato Imagen o Video. "onEnded" decide
-// qué pasa cuando termina ese elemento (seguir en el protector, o avanzar al
-// siguiente del contenido real).
+// qué pasa cuando termina ese elemento (avanza al siguiente de la playlist).
 function appendMediaElement(asset, onEnded) {
   var mediaEl = "";
 	if(asset.mediaType == "image") {
@@ -294,36 +322,28 @@ function appendMediaElement(asset, onEnded) {
   }
 }
 
-// El protector se repite solo, indefinidamente, hasta que se toque la
-// pantalla (y solo si hay contenido real al que pasar).
-function mostrarProtector() {
-	appendMediaElement(protectorAsset, mostrarProtector);
-}
-
-// Al tocar el protector: se oculta el ícono/mensaje de "toca para comenzar"
-// y arranca el bucle del contenido real configurado.
-function iniciarContenidoReal() {
-	if (contenidoAssets.length === 0) { return; }
-	overlayProtector.style.display = 'none';
-	// Métrica de uso: registrar el toque sin bloquear ni retrasar el
-	// arranque del contenido — si la petición falla o tarda, no importa.
-	$.post('registrar_evento.php', { evento: 'SCREEN_STARTED' });
-	curIndex = 0;
-	reproducirContenidoReal();
-}
-
-function reproducirContenidoReal() {
-	if (curIndex >= contenidoAssets.length) {
+function reproducirPlaylist() {
+	if (curIndex >= playlist.length) {
 		curIndex = 0;
 	}
-	appendMediaElement(contenidoAssets[curIndex], reproducirContenidoReal);
+	appendMediaElement(playlist[curIndex], reproducirPlaylist);
 	curIndex++;
 }
 
-// Arranque: el protector siempre se muestra primero. El ícono de toque solo
-// tiene sentido (y solo se muestra) si hay contenido real al que avanzar.
-overlayProtector.style.display = contenidoAssets.length > 0 ? 'flex' : 'none';
-mostrarProtector();
+// Al tocar la pantalla: navega a la URL configurada (frame.php resuelve
+// cuál — general o de esta pantalla) y registra la métrica de uso. No
+// bloquea la navegación esperando esa petición.
+function irAUrlDestino() {
+	if (!urlDestino) { return; }
+	$.post('registrar_evento.php', { evento: 'SCREEN_STARTED' });
+	window.location.href = 'frame.php';
+}
+
+// Arranque: la playlist combinada se reproduce sola desde el principio. El
+// ícono de "toca para comenzar" solo tiene sentido (y solo se muestra) si
+// hay una URL configurada a la que ir.
+overlayProtector.style.display = urlDestino ? 'flex' : 'none';
+reproducirPlaylist();
 </script>
 	
 </body>

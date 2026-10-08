@@ -8,10 +8,14 @@
  * `lista-reproduccion` dedicada a esta pantalla (`Modulo` = su nombre),
  * creada automáticamente la primera vez que se sube algo — nunca al solo
  * abrir esta página, para no generar listas duplicadas en cada visita.
+ * Lo que se sube aquí también queda en la biblioteca (contenido.php), y
+ * cada publicación puede tener fecha de inicio/fin y reordenarse
+ * arrastrando (assets/php/lista_publicaciones.php).
  */
 
 date_default_timezone_set('America/Bogota');
 include 'assets/php/Conexion_DB.php';
+include 'assets/php/contenido_helpers.php';
 
 session_start([
     'cookie_lifetime' => 7200,
@@ -83,67 +87,41 @@ if(isset($_POST['actualizar_modulo'])) {
 /* --- Resolver (solo lectura) la lista de reproducción dedicada de esta
        pantalla — misma resolución específica que usa app/index.php. No se
        crea aquí: solo se crea al subir el primer contenido. --- */
-$sql_lista_pantalla = mysqli_query($conexion,
-    "SELECT * FROM `lista-reproduccion`
-     WHERE `Modulo` = '$nombre_modulo_escaped' AND `Fecha-Inicio` <= NOW()
-     ORDER BY `Fecha-Inicio` DESC LIMIT 1"
-);
-$lista_pantalla    = mysqli_fetch_array($sql_lista_pantalla);
-$ID_lista_pantalla = $lista_pantalla ? $lista_pantalla['ID'] : null;
+$ID_lista_pantalla = lista_de_pantalla($conexion, $nombre_modulo);
 
 /* --- Subir/asignar contenido a la pantalla --- */
 
 if(isset($_POST['subir_contenido'])){
 
-	$Estado = $_REQUEST["Estado"];
-	$Orden  = $_REQUEST["orden"];
-	$fecha  = date("Y-m-d H:i:s");
-	$origen = $_REQUEST["origen"] ?? 'nuevo';
+	$origen       = $_REQUEST["origen"] ?? 'nuevo';
+	$fecha_inicio = fecha_sql($_POST["fecha_inicio"] ?? '');
+	$fecha_fin    = fecha_sql($_POST["fecha_fin"] ?? '');
+	$archivo      = null;
 
-	// Crear la lista dedicada de esta pantalla solo si todavía no existe —
-	// un solo check-then-create, nunca en el GET de esta página.
-	if (!$ID_lista_pantalla) {
-		$nombre_lista = "Pantalla: " . $nombre_modulo;
-		$nombre_lista_escaped = mysqli_real_escape_string($conexion, $nombre_lista);
-		mysqli_query($conexion,
-            "INSERT INTO `lista-reproduccion` (`Nombre`, `Modulo`, `Fecha-Inicio`, `Estado`, `Fecha-Modificacion`, `Usuario`)
-             VALUES ('$nombre_lista_escaped', '$nombre_modulo_escaped', '$fecha', '1', '$fecha', '$name_user')"
-        );
-		$ID_lista_pantalla = mysqli_insert_id($conexion);
+	if ($fecha_inicio !== 'NULL' && $fecha_fin !== 'NULL' && $fecha_fin <= $fecha_inicio) {
+		$errores_contenido = "<p>La fecha de fin debe ser posterior a la de inicio.</p>";
 	}
-
-	if ($origen === 'existente' && !empty($_REQUEST['archivo_existente'])) {
-		list($tipo_existente, $foto) = explode('|', $_REQUEST['archivo_existente'], 2);
-		$foto           = mysqli_real_escape_string($conexion, $foto);
-		$tipo_existente = mysqli_real_escape_string($conexion, $tipo_existente);
-
-		$sub = mysqli_query($conexion,
-            "INSERT INTO contenido (URL, Tipo, Estado, Orden, `Lista-Reproduccion`, Fecha_Modificación, Usuario)
-             VALUES ('$foto', '$tipo_existente', '$Estado', '$Orden', '$ID_lista_pantalla', '$fecha', '$name_user')"
-        );
+	elseif ($origen === 'existente' && !empty($_REQUEST['archivo_existente'])) {
+		$id_biblioteca = (int) $_REQUEST['archivo_existente'];
+		$sql_archivo   = mysqli_query($conexion, "SELECT `URL`, `Tipo` FROM `biblioteca` WHERE `ID` = $id_biblioteca");
+		$archivo       = mysqli_fetch_array($sql_archivo);
 	}
 	else {
-		$foto      = $_FILES["foto"]["name"];
-		$foto_type = $_FILES["foto"]["type"];
-		$ruta      = $_FILES["foto"]["tmp_name"];
-		$destino   = "assets/galeria/" . $foto;
-
-		copy($ruta, $destino);
-
-		$tipo = ($foto_type == 'video/mp4') ? 'video' : 'image';
-
-		$sub = mysqli_query($conexion,
-            "INSERT INTO contenido (URL, Tipo, Estado, Orden, `Lista-Reproduccion`, Fecha_Modificación, Usuario)
-             VALUES ('$foto', '$tipo', '$Estado', '$Orden', '$ID_lista_pantalla', '$fecha', '$name_user')"
-        );
+		$archivo = guardar_subida($conexion, $_FILES["foto"] ?? [], $name_user);
+		if (!is_array($archivo)) {
+			$errores_contenido = "<p>" . htmlspecialchars($archivo) . "</p>";
+			$archivo = null;
+		}
 	}
 
-	if ($sub){
-		mysqli_query($conexion, "UPDATE `lista-reproduccion` SET `Fecha-Modificacion` = '$fecha' WHERE `ID` = '$ID_lista_pantalla'");
-		header("Location: editar_modulo.php?id=$edit_id");
-		exit();
-	}
-	else {
+	if ($archivo) {
+		// Crear la lista dedicada de esta pantalla solo si todavía no existe —
+		// un solo check-then-create, nunca en el GET de esta página.
+		$ID_lista_pantalla = lista_de_pantalla($conexion, $nombre_modulo, $name_user);
+		if (publicar_en_lista($conexion, $ID_lista_pantalla, $archivo['URL'], $archivo['Tipo'], $fecha_inicio, $fecha_fin, $name_user)) {
+			header("Location: editar_modulo.php?id=$edit_id");
+			exit();
+		}
 		$errores_contenido = "<p>No se ha podido guardar el contenido.</p>";
 	}
 }
@@ -154,6 +132,7 @@ if(isset($_POST['actualizar_protector'])){
 
 	$Tiempo_Kiosco    = (int) $_REQUEST["Tiempo_Kiosco"];
 	$Tiempo_Contenido = (int) $_REQUEST["Tiempo_Contenido"];
+	$URL_Destino      = mysqli_real_escape_string($conexion, trim($_REQUEST["URL_Destino"] ?? ''));
 	$hoy              = date("Y-m-d H:i:s");
 
 	$sql_config_check = mysqli_query($conexion, "SELECT * FROM `configuracion` WHERE `Modulo` = '$nombre_modulo_escaped' LIMIT 1");
@@ -180,24 +159,31 @@ if(isset($_POST['actualizar_protector'])){
 		                 `Tiempo_Inactividad_Contenido` = '$Tiempo_Contenido',
 		                 `Protector_URL` = '$protector_url',
 		                 `Protector_Tipo` = '$protector_tipo',
+		                 `URL_Destino` = '$URL_Destino',
 		                 `Fecha-Modificacion` = '$hoy',
 		                 `Usuario` = '$name_user'
 		               WHERE `ID` = " . (int) $config_check['ID']);
 	}
 	else {
-		// Primera vez que esta pantalla tiene protector propio: si no subió
-		// uno nuevo, parte del archivo que hoy muestra la configuración
-		// general, para no dejarla sin protector.
-		if (!$protector_url) {
-			$sql_general = mysqli_query($conexion, "SELECT `Protector_URL`, `Protector_Tipo` FROM `configuracion` WHERE `Modulo` IS NULL LIMIT 1");
+		// Primera vez que esta pantalla tiene configuración propia: si no
+		// subió protector nuevo, o si dejó la URL en blanco, parte de lo
+		// que hoy muestra la configuración general — así crear el override
+		// no apaga por accidente algo que ya funcionaba a nivel general.
+		if (!$protector_url || $URL_Destino === '') {
+			$sql_general = mysqli_query($conexion, "SELECT `Protector_URL`, `Protector_Tipo`, `URL_Destino` FROM `configuracion` WHERE `Modulo` IS NULL LIMIT 1");
 			$general     = mysqli_fetch_array($sql_general);
-			$protector_url  = $general ? $general['Protector_URL']  : 'IDT.mp4';
-			$protector_tipo = $general ? $general['Protector_Tipo'] : 'video';
+			if (!$protector_url) {
+				$protector_url  = $general ? $general['Protector_URL']  : 'IDT.mp4';
+				$protector_tipo = $general ? $general['Protector_Tipo'] : 'video';
+			}
+			if ($URL_Destino === '') {
+				$URL_Destino = $general ? $general['URL_Destino'] : '';
+			}
 		}
 		$actualizar_protector = mysqli_query($conexion, "INSERT INTO `configuracion`
-		                 (`Modulo`, `Tiempo_Inactividad_Kiosco`, `Tiempo_Inactividad_Contenido`, `Protector_URL`, `Protector_Tipo`, `Fecha-Modificacion`, `Usuario`)
+		                 (`Modulo`, `Tiempo_Inactividad_Kiosco`, `Tiempo_Inactividad_Contenido`, `Protector_URL`, `Protector_Tipo`, `URL_Destino`, `Fecha-Modificacion`, `Usuario`)
 		               VALUES
-		                 ('$nombre_modulo_escaped', '$Tiempo_Kiosco', '$Tiempo_Contenido', '$protector_url', '$protector_tipo', '$hoy', '$name_user')");
+		                 ('$nombre_modulo_escaped', '$Tiempo_Kiosco', '$Tiempo_Contenido', '$protector_url', '$protector_tipo', '$URL_Destino', '$hoy', '$name_user')");
 	}
 
 	if ($actualizar_protector){
@@ -211,13 +197,7 @@ if(isset($_POST['actualizar_protector'])){
 
 /* --- Contenido y protector vigentes, para mostrarlos en la página --- */
 
-$contenido_pantalla = [];
-if ($ID_lista_pantalla) {
-	$consulta_contenido_pantalla = mysqli_query($conexion, "SELECT * FROM `contenido` WHERE `Lista-Reproduccion` = $ID_lista_pantalla ORDER BY `Orden` ASC");
-	$contenido_pantalla = $consulta_contenido_pantalla ? $consulta_contenido_pantalla : [];
-}
-
-$consulta_existentes = mysqli_query($conexion, "SELECT DISTINCT URL, Tipo FROM contenido ORDER BY URL ASC");
+$consulta_existentes = mysqli_query($conexion, "SELECT `ID`, `URL`, `Tipo` FROM `biblioteca` ORDER BY `URL` ASC");
 
 $sql_config_pantalla = mysqli_query($conexion, "SELECT * FROM `configuracion` WHERE `Modulo` = '$nombre_modulo_escaped' LIMIT 1");
 $config_pantalla     = mysqli_fetch_array($sql_config_pantalla);
@@ -254,6 +234,7 @@ if (!$config_pantalla) {
   <link href="assets/css/sidebar-menu.css" rel="stylesheet"/>
   <!-- Custom Style-->
   <link href="assets/css/app-style.css" rel="stylesheet"/>
+  <link href="assets/css/contenido.css" rel="stylesheet"/>
 
 </head>
 
@@ -353,7 +334,7 @@ if (!$config_pantalla) {
 									</div>
 									<div class="icheck-material-white d-inline-block">
 										<input type="radio" id="origen_existente" name="origen" value="existente" onchange="toggleOrigenArchivo();">
-										<label for="origen_existente">Usar uno ya subido</label>
+										<label for="origen_existente">Usar contenido existente</label>
 									</div>
 								</div>
 							</div>
@@ -375,30 +356,29 @@ if (!$config_pantalla) {
 									<select class="form-control" name="archivo_existente" id="archivo_existente">
 										<option value="" selected disabled hidden>Seleccione un archivo</option>
 										<?php foreach ($consulta_existentes as $ex){ ?>
-										<option value="<?php echo $ex['Tipo']; ?>|<?php echo htmlspecialchars($ex['URL']); ?>"><?php echo htmlspecialchars($ex['URL']); ?> (<?php echo $ex['Tipo'] == 'video' ? 'video' : 'imagen'; ?>)</option>
+										<option value="<?php echo (int) $ex['ID']; ?>"><?php echo htmlspecialchars($ex['URL']); ?> (<?php echo $ex['Tipo'] == 'video' ? 'video' : 'imagen'; ?>)</option>
 										<?php } ?>
 									</select>
 								</div>
 							</div>
 						</div>
 
-						<div class="col-12 col-lg-6 col-xl-6">
+						<div class="col-12 col-lg-6 col-xl-3">
 							<div class="form-group row">
-								<label class="col-lg-12 col-form-label form-control-label">Estado</label>
-								<div class="col-lg-10">
-									<select class="form-control" name="Estado">
-										<option value="1">Activo</option>
-										<option value="0">Inactivo</option>
-									</select>
+								<label class="col-lg-12 col-form-label form-control-label">Desde</label>
+								<div class="col-lg-12">
+									<input class="form-control" type="datetime-local" name="fecha_inicio">
+									<small class="text-muted">Vacío = desde ya</small>
 								</div>
 							</div>
 						</div>
 
-						<div class="col-12 col-lg-6 col-xl-6">
+						<div class="col-12 col-lg-6 col-xl-3">
 							<div class="form-group row">
-								<label class="col-lg-12 col-form-label form-control-label">Orden</label>
-								<div class="col-lg-10">
-									<input class="form-control" type="number" name="orden" value="<?php echo is_array($contenido_pantalla) ? 0 : mysqli_num_rows($contenido_pantalla); ?>" required>
+								<label class="col-lg-12 col-form-label form-control-label">Hasta</label>
+								<div class="col-lg-12">
+									<input class="form-control" type="datetime-local" name="fecha_fin">
+									<small class="text-muted">Vacío = sin fin</small>
 								</div>
 							</div>
 						</div>
@@ -414,40 +394,11 @@ if (!$config_pantalla) {
 
 				<hr>
 
-				<div class="row">
 				<?php
-					if (!is_array($contenido_pantalla) && mysqli_num_rows($contenido_pantalla) === 0) {
-						echo '<div class="col-12 text-muted">Esta pantalla todavía no tiene contenido propio.</div>';
-					}
-					if (!is_array($contenido_pantalla)) {
-						while($res = mysqli_fetch_array($contenido_pantalla)){
-							$ID_item = $res['ID'];
-							$url_item = $res['URL'];
-							$tipo_item = $res['Tipo'];
-							$estado_item = $res['Estado'] == '1' ? 'Activo' : 'Inactivo';
-							$orden_item = $res['Orden'];
-
-							echo '<div class="col-md-6 col-lg-3 col-xl-3" style="margin: 1% 0%;">';
-							if ($tipo_item == 'image') {
-								echo '<a href="assets/galeria/'.$url_item.'" data-fancybox="images" data-caption="'.$url_item.'">';
-								echo '<img src="assets/galeria/'.$url_item.'" class="lightbox-thumb img-thumbnail">';
-								echo '</a>';
-							} else {
-								echo '<video width="100%" controls><source src="assets/galeria/'.$url_item.'" type="video/mp4"></video>';
-							}
-							echo '<strong>Nombre: </strong>'.htmlspecialchars($url_item).'<br>';
-							echo '<strong>Estado: </strong>'.$estado_item.'<br>';
-							echo '<strong>Orden: </strong>'.$orden_item.'<br><br>';
-							echo '<a href="assets/php/eliminar_img.php?id='.$ID_item.'&user='.urlencode($name_user).'"'
-							   . ' class="btn btn-sm btn-outline-danger js-confirm-delete" title="Eliminar"'
-							   . ' data-title="¿Eliminar este contenido?"'
-							   . ' data-body="Esta acción eliminará &quot;'.htmlspecialchars($url_item).'&quot; de esta pantalla. Esta acción no se puede deshacer.">'
-							   . '<i class="fa fa-trash"></i> Eliminar</a>';
-							echo '</div>';
-						}
-					}
+					$lista_render    = $ID_lista_pantalla;
+					$texto_sin_lista = ''; // ya lo dice el aviso de arriba
+					include 'assets/php/lista_publicaciones.php';
 				?>
-				</div>
 
             </div>
           </div>
@@ -457,11 +408,11 @@ if (!$config_pantalla) {
 	<div class="row">
 		<div class="col-lg-12">
           <div class="card">
-			  <div class="card-header text-uppercase"><i class="fa fa-clock-o"></i> Protector de pantalla de esta pantalla</div>
+			  <div class="card-header text-uppercase"><i class="fa fa-clock-o"></i> Protector y toque de esta pantalla</div>
             <div class="card-body">
 
 				<?php if (!$tiene_protector_propio): ?>
-				<p class="text-muted">Esta pantalla está usando el protector <a href="configuracion.php">general</a>. Guarda estos valores para darle uno propio.</p>
+				<p class="text-muted">Esta pantalla está usando el protector y la URL de toque <a href="configuracion.php">generales</a>. Guarda estos valores para darle los suyos propios.</p>
 				<?php endif; ?>
 
 				<form action="<?php echo $_SERVER['PHP_SELF'] . '?id=' . $edit_id; ?>" method="POST" enctype="multipart/form-data">
@@ -488,6 +439,15 @@ if (!$config_pantalla) {
 								<div class="col-lg-10">
 									<input type="file" class="form-control" name="protector" accept=".png, .jpg, .jpeg, .mp4">
 									<small class="text-muted">Actual: <?php echo htmlspecialchars($config_pantalla['Protector_URL']); ?></small>
+								</div>
+							</div>
+						</div>
+						<div class="col-12">
+							<div class="form-group row">
+								<label class="col-lg-12 col-form-label form-control-label">URL al tocar esta pantalla</label>
+								<div class="col-lg-10">
+									<input class="form-control" type="url" name="URL_Destino" value="<?php echo htmlspecialchars($config_pantalla['URL_Destino']); ?>" placeholder="https://ejemplo.com">
+									<small class="text-muted">A dónde navega esta pantalla cuando el visitante la toca. Vacío = usar la URL general.</small>
 								</div>
 							</div>
 						</div>
@@ -528,6 +488,8 @@ if (!$config_pantalla) {
 
   <!-- Bootstrap core JavaScript-->
   <script src="assets/js/jquery.min.js"></script>
+  <!-- jQuery UI (sortable) antes de Bootstrap, para que sus .button()/.tooltip() no pisen los de Bootstrap -->
+  <script src="assets/plugins/jquery-ui/jquery-ui.min.js"></script>
   <script src="assets/js/popper.min.js"></script>
   <script src="assets/js/bootstrap.min.js"></script>
 
@@ -540,6 +502,8 @@ if (!$config_pantalla) {
   <script src="assets/js/app-script.js"></script>
   <!-- Confirmación de eliminación -->
   <script src="assets/js/confirm-delete.js"></script>
+  <!-- Reordenar el contenido de esta pantalla (arrastrar) -->
+  <script src="assets/js/publicaciones.js"></script>
 
   <!--Lightbox-->
   <script src="assets/plugins/fancybox/js/jquery.fancybox.min.js"></script>

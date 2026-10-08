@@ -46,6 +46,7 @@ $tiempo_kiosco_actual = $datos_config['Tiempo_Inactividad_Kiosco'];
 $tiempo_contenido_actual = $datos_config['Tiempo_Inactividad_Contenido'];
 $protector_url_actual = $datos_config['Protector_URL'];
 $protector_tipo_actual = $datos_config['Protector_Tipo'];
+$url_destino_actual = $datos_config['URL_Destino'];
 
 /* Actualizar configuración */
 
@@ -53,6 +54,7 @@ if(isset($_POST['enviar'])){
 
 	$Tiempo_Kiosco = (int) $_REQUEST["Tiempo_Kiosco"];
 	$Tiempo_Contenido = (int) $_REQUEST["Tiempo_Contenido"];
+	$URL_Destino = trim($_REQUEST["URL_Destino"] ?? '');
 	$hoy = date("Y-m-d H:i:s");
 
 	$protector_url = $protector_url_actual;
@@ -72,11 +74,14 @@ if(isset($_POST['enviar'])){
 		$protector_tipo = ($foto_type == 'video/mp4') ? 'video' : 'image';
 	}
 
+	$URL_Destino_escaped = mysqli_real_escape_string($conexion, $URL_Destino);
+
 	$sql_config = "UPDATE `configuracion` SET
 	                 `Tiempo_Inactividad_Kiosco` = '$Tiempo_Kiosco',
 	                 `Tiempo_Inactividad_Contenido` = '$Tiempo_Contenido',
 	                 `Protector_URL` = '$protector_url',
 	                 `Protector_Tipo` = '$protector_tipo',
+	                 `URL_Destino` = '$URL_Destino_escaped',
 	                 `Fecha-Modificacion` = '$hoy',
 	                 `Usuario` = '$name_user'
 	               WHERE `ID` = $ID_config";
@@ -190,6 +195,16 @@ if(isset($_POST['enviar'])){
 									<div class="col-sm-10">
 										<input type="file" class="form-control" name="protector" id="input-protector" accept=".png, .jpg, .jpeg, .mp4" onchange="validarFile(this);">
 										<small class="text-muted">Actual: <?php echo $protector_url_actual; ?>. Déjalo vacío para conservarlo.</small>
+									</div>
+								</div>
+							</div>
+
+							<div class="col-12">
+								<div class="form-group row">
+									<label class="col-lg-12 col-form-label form-control-label">URL al tocar la pantalla (general)</label>
+									<div class="col-lg-10">
+										<input class="form-control" type="url" name="URL_Destino" value="<?php echo htmlspecialchars($url_destino_actual); ?>" placeholder="https://ejemplo.com">
+										<small class="text-muted">A dónde navega el kiosco cuando el visitante toca la pantalla. Vacío = el toque no hace nada (en pantallas sin override propio).</small>
 									</div>
 								</div>
 							</div>

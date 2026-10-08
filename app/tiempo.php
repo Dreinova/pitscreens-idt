@@ -100,7 +100,25 @@ if ($row_config_esp) {
 	}
 }
 
-$version = $id_lista . '-' . $fecha_lista . '|' . $id_config . '-' . $fecha_config;
+/* IDs del contenido visible ahora en esa lista (activo y dentro de su
+   ventana Fecha_Inicio/Fecha_Fin) — mismo filtro que app/index.php. Si
+   algo entra o sale de su ventana, este conjunto cambia y el kiosco
+   recarga: así se publica/despublica solo, sin tocar nada en el admin. */
+$ids_visibles = [];
+if ($id_lista) {
+	$id_lista_int = (int) $id_lista;
+	$sql_visibles = mysqli_query($conexion,
+	    "SELECT `ID` FROM `contenido`
+	     WHERE `Lista-Reproduccion` = $id_lista_int AND `Estado` = 1
+	       AND (`Fecha_Inicio` IS NULL OR `Fecha_Inicio` <= '$ahora')
+	       AND (`Fecha_Fin` IS NULL OR `Fecha_Fin` > '$ahora')
+	     ORDER BY `ID` ASC");
+	while ($sql_visibles && ($v = mysqli_fetch_array($sql_visibles))) {
+		$ids_visibles[] = (int) $v['ID'];
+	}
+}
+
+$version = $id_lista . '-' . $fecha_lista . '|' . $id_config . '-' . $fecha_config . '|' . implode(',', $ids_visibles);
 
 // El div #tiempo es invisible (0x0, overflow hidden) — seguro embeber esto.
 echo $ahora . '|' . $version;
