@@ -6227,3 +6227,21 @@ code { color: #C0392B; }
 
 
 
+
+/* ---- Modales ----
+   El tema base los pinta negros (#000) con bordes blancos translúcidos;
+   con el texto oscuro de este sistema quedaban ilegibles. */
+
+.modal-content {
+	background: var(--color-surface);
+	color: var(--color-text);
+	border: 0;
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow-md);
+}
+.modal-header,
+.modal-footer { border-color: var(--color-border); }
+.modal-title { color: var(--color-text); font-size: 16px; font-weight: 600; }
+.modal .close,
+.modal .close:hover { color: var(--color-text); text-shadow: none; }
+.modal-backdrop.show { opacity: .45; }

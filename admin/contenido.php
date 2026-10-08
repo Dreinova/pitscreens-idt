@@ -320,7 +320,7 @@ foreach ($destinos as $d) {
     <div class="modal-dialog" role="document">
       <form class="modal-content" id="formPublicar" action="assets/php/publicar_contenido.php" method="POST">
         <div class="modal-header">
-          <h5 class="modal-title" id="modalPublicarLabel"><i class="fa fa-paper-plane"></i> Publicar <small class="js-publicar-nombre d-block text-muted"></small></h5>
+          <h5 class="modal-title" id="modalPublicarLabel"><i class="fa fa-paper-plane"></i> Publicar <small class="js-publicar-nombre publicar-subtitulo"></small></h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar"><span aria-hidden="true">&times;</span></button>
         </div>
         <div class="modal-body">
