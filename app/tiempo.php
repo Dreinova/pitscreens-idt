@@ -27,6 +27,15 @@ include '../admin/assets/php/Conexion_DB.php';
 
 $ahora = date("Y-m-d H:i:s"); // Hora actual del servidor
 
+/* Latido de la pantalla: cada sondeo (desde index.php cada 1s, o desde
+   frame.php cada 20s mientras se ve el contenido) deja constancia de que
+   este módulo sigue encendido y con conexión al servidor. Lo usa
+   admin/modulos.php para el indicador verde/rojo de actividad. */
+if (isset($_SESSION['modulo_id'])) {
+	$modulo_id_actual = (int) $_SESSION['modulo_id'];
+	mysqli_query($conexion, "UPDATE `modulos` SET `Ultima_Conexion` = '$ahora' WHERE `ID` = $modulo_id_actual");
+}
+
 /* Buscar programación cuya fecha de inicio coincida exactamente con ahora
    (mecanismo heredado: mantiene Estado=1/0 sincronizado en la BD) */
 $sql_hora = mysqli_query($conexion,

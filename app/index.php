@@ -335,8 +335,21 @@ function reproducirPlaylist() {
 // bloquea la navegación esperando esa petición.
 function irAUrlDestino() {
 	if (!urlDestino) { return; }
-	$.post('registrar_evento.php', { evento: 'SCREEN_STARTED' });
+	registrarEvento('SCREEN_STARTED');
 	window.location.href = 'frame.php';
+}
+
+// Envía el evento con sendBeacon: a diferencia de $.post, el navegador lo
+// garantiza aunque la página navegue a frame.php de inmediato después (un
+// $.post normal puede quedar cancelado a mitad de camino por la navegación
+// y el toque nunca quedaba registrado). Si el navegador no soporta
+// sendBeacon, cae a $.post como respaldo.
+function registrarEvento(evento) {
+	if (navigator.sendBeacon) {
+		navigator.sendBeacon('registrar_evento.php', new URLSearchParams({ evento: evento }));
+	} else {
+		$.post('registrar_evento.php', { evento: evento });
+	}
 }
 
 // Arranque: la playlist combinada se reproduce sola desde el principio. El

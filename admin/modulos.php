@@ -41,6 +41,24 @@ $consulta_modulos = mysqli_query($conexion, $sql_modulos);
 $total_modulos = mysqli_num_rows($consulta_modulos);
 
 mysqli_close($conexion);
+
+/* Estado de actividad por pantalla: app/tiempo.php deja un latido en
+   modulos.Ultima_Conexion cada vez que un kiosco lo sondea (cada 1s en
+   index.php, cada 20s en frame.php). Si el último latido es reciente, la
+   pantalla está encendida y con conexión al servidor; si no, está apagada,
+   sin internet, o atascada antes de cargar la app. */
+const UMBRAL_ACTIVA_SEGUNDOS = 60;
+
+function estado_pantalla($ultima_conexion) {
+	if (!$ultima_conexion) {
+		return [false, 'Nunca se ha conectado'];
+	}
+	$segundos = time() - strtotime($ultima_conexion);
+	if ($segundos <= UMBRAL_ACTIVA_SEGUNDOS) {
+		return [true, 'Activa — último contacto hace ' . $segundos . ' segundos'];
+	}
+	return [false, 'Sin conexión desde el ' . date('d-m-Y h:i:s A', strtotime($ultima_conexion))];
+}
 ?>
 
 <!DOCTYPE html>
@@ -112,6 +130,7 @@ mysqli_close($conexion);
                     <th scope="col">Nombre</th>
                     <th scope="col">Ubicación</th>
                     <th scope="col">Fecha de Modificación</th>
+                    <th scope="col" class="text-center">Estado</th>
 					<th scope="col" class="text-center">Acciones</th>
                   </tr>
                 </thead>
@@ -119,17 +138,21 @@ mysqli_close($conexion);
                 <tbody>
 				<?php if ($total_modulos === 0): ?>
 				  <tr>
-					<td colspan="5" class="text-center text-muted">No hay pantallas registradas todavía.</td>
+					<td colspan="6" class="text-center text-muted">No hay pantallas registradas todavía.</td>
 				  </tr>
 				<?php else: foreach ($consulta_modulos as $datos_modulos){
 						$id_fila = $datos_modulos['ID'];
 						$nombre_fila = htmlspecialchars($datos_modulos['nombre_modulo']);
+						list($activa, $titulo_estado) = estado_pantalla($datos_modulos['Ultima_Conexion']);
 				?>
                   <tr>
 					<td><?php echo $id_fila; ?></td>
                     <td><?php echo $nombre_fila; ?></td>
                     <td><?php echo htmlspecialchars($datos_modulos['ubicacion']); ?></td>
 					<td><?php echo $datos_modulos['fecha_modificacion']; ?></td>
+					<td class="text-center">
+						<i class="fa fa-circle" style="color: <?php echo $activa ? '#2ecc71' : '#e74c3c'; ?>;" title="<?php echo htmlspecialchars($titulo_estado); ?>" data-toggle="tooltip"></i>
+					</td>
 					<td class="text-center">
 						<div class="btn-group btn-group-sm" role="group">
 							<a href="../app/index.php?pantalla=<?php echo $id_fila; ?>" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary" title="Ver pantalla" data-toggle="tooltip">

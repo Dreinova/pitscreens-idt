@@ -123,6 +123,13 @@ window.onload = lanzadera;
 <script type="text/javascript" src="assets/js/Inactividad2.js"></script>
 <!-- Scripts IDT app -->
 <script type="text/javascript" src="assets/js/IDT_app.js"></script>
+<!-- Latido: avisa que esta pantalla sigue encendida y con conexión mientras
+     se ve el contenido (index.php ya lo hace cada 1s vía tiempo.php; aquí no
+     hace falta tan seguido, y se ignora la respuesta a propósito — no debe
+     interrumpir ni recargar lo que el visitante está viendo). -->
+<script>
+setInterval(function () { $.get('tiempo.php'); }, 20000);
+</script>
 
 </body>
 </html>
