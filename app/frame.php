@@ -7,8 +7,9 @@
  * si no tiene una propia) en `configuracion.URL_Destino` — es a donde
  * navega app/index.php cuando el visitante toca la pantalla.
  *
- * La URL externa se carga a través de proxy.php para evadir restricciones
- * de X-Frame-Options que impiden la incrustación directa de sitios externos.
+ * La URL se carga directamente en el iframe (sin proxy), así que el sitio
+ * destino debe permitir ser incrustado (sin X-Frame-Options: DENY/SAMEORIGIN
+ * ni CSP frame-ancestors que lo bloquee).
  *
  * Requisitos:
  *   - Sesión de módulo activa ($_SESSION['log-modulo']).
@@ -100,9 +101,8 @@ window.onload = lanzadera;
     <div class="container"> 
         <a class="regresar" href="index.php">Regresar</a>
         
-        <!-- Aquí va el proxy -->
-        <iframe class="responsive-iframe" 
-                src="proxy.php?url=<?php echo urlencode($URL); ?>" 
+        <iframe class="responsive-iframe"
+                src="<?php echo htmlspecialchars($URL, ENT_QUOTES, 'UTF-8'); ?>"
                 frameborder="0" 
                 width="100%" 
                 height="100%">

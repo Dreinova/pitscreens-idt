@@ -155,8 +155,8 @@ log_index.php → index.php → login.php → comprobacion.php
 | `comprobacion.php` | **Verificación.** Consulta la tabla `visitantes` con el número de documento. Redirige a `registro.php` si es nuevo o a `frame.php` si ya existe. |
 | `registro.php` | **Formulario de registro.** Captura tipo de documento, número, nombres, apellidos y aceptación de política de datos. |
 | `datos_visitantes.php` | **Guardado de datos.** Inserta el nuevo visitante en la tabla `visitantes` y redirige a `frame.php`. |
-| `frame.php` | **Contenido principal.** Muestra la URL configurada en un iframe usando `proxy.php` como intermediario. |
-| `proxy.php` | **Proxy HTTP.** Descarga el contenido de la URL remota con cURL y lo sirve directamente para evadir restricciones de X-Frame-Options. |
+| `frame.php` | **Contenido principal.** Muestra la URL configurada directamente en un iframe (el sitio destino debe permitir ser incrustado). |
+| `proxy.php` | **Proxy HTTP (en desuso, `frame.php` ya no lo usa).** Descarga el contenido de la URL remota con cURL y lo sirve directamente para evadir restricciones de X-Frame-Options. |
 | `tiempo.php` | **Polling de tiempo.** Se carga vía AJAX cada segundo desde `index.php`. Si detecta que la hora coincide con la Fecha-Inicio de una programación, redirige a `activacion.php`. |
 | `activacion.php` | **Activación de playlist.** Cambia el campo `Estado` en `lista-reproduccion`: activa la programación correspondiente y desactiva todas las demás. |
 
@@ -301,7 +301,7 @@ reco (estadísticas de uso) ─────────────────�
    └── [Continuar] → datos_visitantes.php → frame.php
           ↓
 5. CONTENIDO (frame.php)
-   └── URL externa cargada mediante proxy.php
+   └── URL externa cargada directamente en el iframe
    └── [Inactividad] → index.php (pantalla de espera)
 ```
 
