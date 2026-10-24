@@ -20,7 +20,9 @@
  * Slideshow JavaScript:
  *   - Imágenes: se muestran durante 10 segundos (setTimeout 10000ms).
  *   - Videos: se reproducen completos; al terminar (evento 'ended') avanza al siguiente.
- *   - Si no hay contenido configurado, reproduce un video por defecto (IDT.mp4).
+ *   - El protector general (o IDT.mp4 si no hay) solo se intercala con el
+ *     contenido general. Si la pantalla tiene contenido específico visible,
+ *     se reproduce solo ese (más su protector propio, si lo tiene).
  *
  * Actualización en tiempo real:
  *   - El div #tiempo se actualiza cada 1 segundo cargando tiempo.php vía AJAX
@@ -67,11 +69,33 @@ $ahora      = date("Y-m-d H:i:s");
 $NuevaFecha = strtotime('+1 minute', strtotime($ahora));
 $NuevaFecha = date('Y-m-d H:i:s', $NuevaFecha);
 
+// Elementos de una lista que se deben ver AHORA: activos y dentro de su
+// ventana de publicación (Fecha_Inicio/Fecha_Fin, NULL = sin límite), en
+// el orden definido desde el admin.
+function contenidoVisible($conexion, $id_lista, $ahora) {
+	$id_lista = (int) $id_lista;
+	$filas    = [];
+	if (!$id_lista) { return $filas; }
+	$consulta = mysqli_query($conexion,
+	    "SELECT * FROM `contenido`
+	     WHERE `Lista-Reproduccion` = $id_lista AND `Estado` = 1
+	       AND (`Fecha_Inicio` IS NULL OR `Fecha_Inicio` <= '$ahora')
+	       AND (`Fecha_Fin` IS NULL OR `Fecha_Fin` > '$ahora')
+	     ORDER BY CAST(`Orden` AS SIGNED) ASC, `ID` ASC"
+	);
+	while ($consulta && ($fila = mysqli_fetch_array($consulta))) {
+		$filas[] = $fila;
+	}
+	return $filas;
+}
+
 /* --- Contenido específico de este módulo (si existe) --- */
 // Si hay una programación atada a ESTE módulo con fecha ya vigente, se usa
 // directo — no participa del mecanismo de Estado=1 (ese sigue siendo
 // exclusivo del contenido general, más abajo), así que cada módulo puede
-// tener la suya sin pisar a los demás.
+// tener la suya sin pisar a los demás. Solo cuenta si tiene algo visible
+// ahora: una lista propia vacía (o con todo fuera de su ventana) cae al
+// contenido general, igual que si no existiera.
 $modulo_actual   = mysqli_real_escape_string($conexion, $modulo);
 $sql_especifica  = mysqli_query($conexion,
     "SELECT * FROM `lista-reproduccion`
@@ -79,8 +103,10 @@ $sql_especifica  = mysqli_query($conexion,
      ORDER BY `Fecha-Inicio` DESC LIMIT 1"
 );
 $row_especifica  = mysqli_fetch_array($sql_especifica);
+$filasContenido  = $row_especifica ? contenidoVisible($conexion, $row_especifica['ID'], $ahora) : [];
+$tiene_especifico = count($filasContenido) > 0;
 
-if ($row_especifica) {
+if ($tiene_especifico) {
 	$ID_programacion   = $row_especifica['ID'];
 	$name_programacion = $row_especifica['Nombre'];
 	$fecha_mod_lista   = $row_especifica['Fecha-Modificacion'];
@@ -121,24 +147,11 @@ else {
 	$ID_programacion   = $row_programacion["ID"];
 	$name_programacion = $row_programacion["Nombre"];
 	$fecha_mod_lista   = $row_programacion["Fecha-Modificacion"];
+	$filasContenido    = contenidoVisible($conexion, $ID_programacion, $ahora);
 }
 
-// Elementos de la lista (específica o general) que se deben ver AHORA:
-// activos y dentro de su ventana de publicación (Fecha_Inicio/Fecha_Fin,
-// NULL = sin límite), en el orden definido desde el admin.
-$ID_programacion   = (int) $ID_programacion;
-$consultaContenido = mysqli_query($conexion,
-    "SELECT * FROM `contenido`
-     WHERE `Lista-Reproduccion` = $ID_programacion AND `Estado` = 1
-       AND (`Fecha_Inicio` IS NULL OR `Fecha_Inicio` <= '$ahora')
-       AND (`Fecha_Fin` IS NULL OR `Fecha_Fin` > '$ahora')
-     ORDER BY CAST(`Orden` AS SIGNED) ASC, `ID` ASC"
-);
-$filasContenido = [];
-while ($fila = mysqli_fetch_array($consultaContenido)) {
-	$filasContenido[] = $fila;
-}
-$numero_filas = count($filasContenido);
+$ID_programacion = (int) $ID_programacion;
+$numero_filas    = count($filasContenido);
 
 // IDs visibles ahora, ordenados — parte de la versión: cuando algo entra
 // o sale de su ventana, tiempo.php reporta otro conjunto y la pantalla
@@ -152,6 +165,7 @@ $sql_config_especifica = mysqli_query($conexion,
     "SELECT * FROM `configuracion` WHERE `Modulo` = '$modulo_actual' LIMIT 1"
 );
 $row_config = mysqli_fetch_array($sql_config_especifica);
+$protector_propio = (bool) $row_config;
 
 if (!$row_config) {
 	$sql_config_general = mysqli_query($conexion,
@@ -165,6 +179,12 @@ $protector_tipo   = $row_config ? $row_config['Protector_Tipo'] : 'video';
 $url_destino      = $row_config ? trim($row_config['URL_Destino']) : '';
 $id_config        = $row_config ? $row_config['ID'] : null;
 $fecha_mod_config = $row_config ? $row_config['Fecha-Modificacion'] : null;
+
+// El protector general (o IDT.mp4 si no hay ninguno) acompaña solo al
+// contenido general. Si la pantalla tiene contenido específico visible, se
+// reproduce únicamente ese — salvo que la pantalla tenga su propio
+// protector configurado, que sí se mantiene.
+$mostrar_protector = !$tiene_especifico || $protector_propio;
 
 /* --- Versión del contenido/configuración vigente, para que el polling de
        abajo detecte cambios hechos desde el admin y recargue la pantalla. */
@@ -278,8 +298,10 @@ var contenidoAssets = [
 	?>
 ];
 
-// Protector de pantalla configurado en el admin (admin/configuracion.php) —
-// siempre hay uno, es lo que se ve antes de tocar la pantalla.
+// Protector de pantalla configurado en el admin (admin/configuracion.php).
+// Solo entra en la playlist si no hay contenido específico de esta pantalla
+// (ver $mostrar_protector arriba).
+var mostrarProtector = <?php echo $mostrar_protector ? 'true' : 'false'; ?>;
 var protectorAsset = {
 	contentUrl: "../admin/assets/galeria/<?php echo $protector_url; ?>",
 	contentType: "<?php echo $protector_tipo === 'image' ? 'image/jpg' : 'video/mp4'; ?>",
@@ -299,10 +321,15 @@ var previewContainer = $(".contenedor-medios");
 var overlayProtector  = document.getElementById('overlayProtector');
 var curIndex = 0;
 
-// Protector + contenido propio de esta pantalla, todo junto en un solo
-// bucle continuo que arranca solo al cargar la página — ya no hay nada
-// que "revelar" al tocar, el toque ahora navega a una URL (ver abajo).
-var playlist = [protectorAsset].concat(contenidoAssets);
+// Protector (si aplica) + contenido de esta pantalla, todo junto en un
+// solo bucle continuo que arranca solo al cargar la página — ya no hay
+// nada que "revelar" al tocar, el toque ahora navega a una URL (ver abajo).
+// Si por alguna razón queda vacía, se usa el protector igual para no dejar
+// la pantalla en negro.
+var playlist = (mostrarProtector ? [protectorAsset] : []).concat(contenidoAssets);
+if (playlist.length === 0) {
+	playlist = [protectorAsset];
+}
 
 // Funcion para agregar los tipos de formato Imagen o Video. "onEnded" decide
 // qué pasa cuando termina ese elemento (avanza al siguiente de la playlist).

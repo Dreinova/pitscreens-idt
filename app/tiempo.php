@@ -57,8 +57,29 @@ if($ahora == $fecha_inicio){
    nueva programación con Fecha-Inicio ya vigente). */
 $modulo_actual = isset($_SESSION['modulo']) ? mysqli_real_escape_string($conexion, $_SESSION['modulo']) : '';
 
+/* IDs del contenido visible ahora en una lista (activo y dentro de su
+   ventana Fecha_Inicio/Fecha_Fin) — mismo filtro que app/index.php. Si
+   algo entra o sale de su ventana, este conjunto cambia y el kiosco
+   recarga: así se publica/despublica solo, sin tocar nada en el admin. */
+function idsVisibles($conexion, $id_lista, $ahora) {
+	$ids = [];
+	$id_lista = (int) $id_lista;
+	if (!$id_lista) { return $ids; }
+	$sql_visibles = mysqli_query($conexion,
+	    "SELECT `ID` FROM `contenido`
+	     WHERE `Lista-Reproduccion` = $id_lista AND `Estado` = 1
+	       AND (`Fecha_Inicio` IS NULL OR `Fecha_Inicio` <= '$ahora')
+	       AND (`Fecha_Fin` IS NULL OR `Fecha_Fin` > '$ahora')
+	     ORDER BY `ID` ASC");
+	while ($sql_visibles && ($v = mysqli_fetch_array($sql_visibles))) {
+		$ids[] = (int) $v['ID'];
+	}
+	return $ids;
+}
+
 $id_lista = null;
 $fecha_lista = null;
+$ids_visibles = [];
 
 if ($modulo_actual !== '') {
 	$sql_especifica = mysqli_query($conexion,
@@ -71,7 +92,14 @@ if ($modulo_actual !== '') {
 	$row_especifica = null;
 }
 
+// La lista propia solo cuenta si tiene algo visible ahora; si no, cae a la
+// general (igual que app/index.php, que en ese caso también muestra el
+// protector general).
 if ($row_especifica) {
+	$ids_visibles = idsVisibles($conexion, $row_especifica['ID'], $ahora);
+}
+
+if ($ids_visibles) {
 	$id_lista    = $row_especifica['ID'];
 	$fecha_lista = $row_especifica['Fecha-Modificacion'];
 } else {
@@ -82,8 +110,9 @@ if ($row_especifica) {
 	);
 	$row_general = mysqli_fetch_array($sql_general);
 	if ($row_general) {
-		$id_lista    = $row_general['ID'];
-		$fecha_lista = $row_general['Fecha-Modificacion'];
+		$id_lista     = $row_general['ID'];
+		$fecha_lista  = $row_general['Fecha-Modificacion'];
+		$ids_visibles = idsVisibles($conexion, $id_lista, $ahora);
 	}
 }
 
@@ -106,24 +135,6 @@ if ($row_config_esp) {
 	if ($row_config_gen) {
 		$id_config    = $row_config_gen['ID'];
 		$fecha_config = $row_config_gen['Fecha-Modificacion'];
-	}
-}
-
-/* IDs del contenido visible ahora en esa lista (activo y dentro de su
-   ventana Fecha_Inicio/Fecha_Fin) — mismo filtro que app/index.php. Si
-   algo entra o sale de su ventana, este conjunto cambia y el kiosco
-   recarga: así se publica/despublica solo, sin tocar nada en el admin. */
-$ids_visibles = [];
-if ($id_lista) {
-	$id_lista_int = (int) $id_lista;
-	$sql_visibles = mysqli_query($conexion,
-	    "SELECT `ID` FROM `contenido`
-	     WHERE `Lista-Reproduccion` = $id_lista_int AND `Estado` = 1
-	       AND (`Fecha_Inicio` IS NULL OR `Fecha_Inicio` <= '$ahora')
-	       AND (`Fecha_Fin` IS NULL OR `Fecha_Fin` > '$ahora')
-	     ORDER BY `ID` ASC");
-	while ($sql_visibles && ($v = mysqli_fetch_array($sql_visibles))) {
-		$ids_visibles[] = (int) $v['ID'];
 	}
 }
 
