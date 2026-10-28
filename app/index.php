@@ -165,13 +165,20 @@ $sql_config_especifica = mysqli_query($conexion,
     "SELECT * FROM `configuracion` WHERE `Modulo` = '$modulo_actual' LIMIT 1"
 );
 $row_config = mysqli_fetch_array($sql_config_especifica);
-$protector_propio = (bool) $row_config;
+
+$sql_config_general = mysqli_query($conexion,
+    "SELECT * FROM `configuracion` WHERE `Modulo` IS NULL LIMIT 1"
+);
+$row_config_general = mysqli_fetch_array($sql_config_general);
+
+// Una fila propia no implica protector propio: al guardar solo la URL de
+// toque o los tiempos, editar_modulo.php copia el protector general en la
+// fila de la pantalla. Solo cuenta como propio si es un archivo distinto.
+$protector_general_url = $row_config_general ? $row_config_general['Protector_URL'] : 'IDT.mp4';
+$protector_propio = $row_config && $row_config['Protector_URL'] !== '' && $row_config['Protector_URL'] !== $protector_general_url;
 
 if (!$row_config) {
-	$sql_config_general = mysqli_query($conexion,
-	    "SELECT * FROM `configuracion` WHERE `Modulo` IS NULL LIMIT 1"
-	);
-	$row_config = mysqli_fetch_array($sql_config_general);
+	$row_config = $row_config_general;
 }
 
 $protector_url    = $row_config ? $row_config['Protector_URL']  : 'IDT.mp4';
