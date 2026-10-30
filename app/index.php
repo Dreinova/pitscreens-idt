@@ -242,8 +242,8 @@ function lanzadera(){
 		<div class="kiosk-idle-content">
 			<div class="kiosk-touch-badge">
 				<img class="kiosk-touch-icon" src="assets/img/Mano_Touch.svg" alt="">
+				<span class="kiosk-touch-label">Toca aquí</span>
 			</div>
-			<h2 class="kiosk-idle-title">Toca la pantalla para comenzar</h2>
 			<span class="kiosk-module-pill"><?php echo $modulo; ?></span>
 		</div>
 	</div>

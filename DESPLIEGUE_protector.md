@@ -6,6 +6,11 @@ propia en `configuracion`, porque `admin/editar_modulo.php` copia ahí el
 protector general cuando solo se guarda la URL de toque o los tiempos. Ahora
 el protector solo cuenta como propio si el archivo es distinto del general.
 
+**Cambio 2:** `app/index.php` y `app/assets/css/styles.css`. El overlay de
+toque queda solo con el círculo, la mano y un texto pequeño "Toca aquí" dentro
+del círculo. Se quita el título "Toca la pantalla para comenzar" y se mantiene
+la pastilla con el nombre de la pantalla.
+
 - No hay migración SQL.
 - No cambian archivos de la galería ni `Conexion_DB.php`.
 
@@ -18,8 +23,8 @@ contraseña está en `PASS=` de `D:\NAS_DATA\Claude\NewCandelaria-test\.env`.
 
 ```bash
 cd /b/repos/pitScreens
-git add app/index.php
-git commit -m "Protector propio solo si el archivo difiere del general"
+git add app/index.php app/assets/css/styles.css
+git commit -m "Protector propio solo si el archivo difiere del general; overlay de toque simplificado"
 git push origin main
 ```
 
@@ -76,3 +81,5 @@ ssh useridt@10.216.153.78 \
     intercalado con el contenido general.
   - Una pantalla con un protector propio distinto del general lo sigue
     mostrando.
+  - El overlay muestra el círculo con la mano y "Toca aquí", sin el título de
+    abajo, y con la pastilla del nombre de la pantalla.
